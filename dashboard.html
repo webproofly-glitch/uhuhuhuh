@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coinlarp - Activate License</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,100..900;1,100..900&family=Roboto+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+        <link rel="icon" type="image/svg+xml" href="/logo.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, h1, h2, h3, p, a, span, button, li, ul, nav, header, section, div, input {
+            font-family: 'Urbanist', sans-serif;
+        }
+
+        html {
+            overflow-x: hidden;
+        }
+
+        body {
+            background-color: #0a0a0a;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+            position: relative;
+            padding: 24px;
+        }
+
+        /* License Activation Container */
+        .license-container {
+            position: relative;
+            z-index: 1;
+            background: transparent;
+            border: 1px solid #252525;
+            border-radius: 16px;
+            padding: 36px 28px;
+            text-align: center;
+            max-width: 380px;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .license-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 12px;
+            letter-spacing: -0.02em;
+        }
+
+        .license-subtitle {
+            font-size: 15px;
+            font-weight: 500;
+            color: #888888;
+            margin-bottom: 32px;
+            line-height: 1.5;
+        }
+
+        .license-label {
+            display: block;
+            text-align: left;
+            font-size: 14px;
+            font-weight: 600;
+            color: #a0a0a0;
+            margin-bottom: 8px;
+        }
+
+        .license-input {
+            width: 100%;
+            padding: 14px 16px;
+            background-color: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 10px;
+            color: #ffffff;
+            font-size: 16px;
+            font-family: 'Roboto Mono', monospace;
+            letter-spacing: 2px;
+            margin-bottom: 24px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            caret-color: #A3F361;
+        }
+
+        .license-input:focus {
+            outline: none;
+            border-color: #A3F361;
+            box-shadow: 0 0 0 3px rgba(163, 243, 97, 0.15);
+        }
+
+        .license-input::placeholder {
+            color: #555555;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .license-input.animate {
+            animation: slideIn 0.15s ease-out;
+        }
+
+        .activate-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 14px 22px;
+            background-color: #A3F361;
+            color: #101010;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .activate-btn:hover {
+            background-color: #A3F361;
+            transform: translateY(-2px);
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 24px;
+            color: #666666;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .back-link:hover {
+            color: #A3F361;
+        }
+
+        .back-link i {
+            font-size: 12px;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 480px) {
+            .license-container {
+                padding: 32px 24px;
+            }
+
+            .license-title {
+                font-size: 24px;
+            }
+
+            .license-subtitle {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Logo -->
+    <a href="https://coinlarp.com/" class="logo" style="display: flex; align-items: center; gap: 10px; text-decoration: none; margin-bottom: 24px; z-index: 10;">
+        <img src="/logo.png" alt="Coinlarp" class="logo-img" style="width: 44px; height: 44px; border-radius: 8px; object-fit: contain;">
+        <span class="logo-text" style="color: #ffffff; font-size: 22px; font-weight: 700;">Coin<span style="color: #A3F361;">larp</span></span>
+    </a>
+
+    <!-- License Activation -->
+    <div class="license-container">
+        <h2 class="license-title">Activate Your License</h2>
+        <p class="license-subtitle">Enter the license key you received after purchase to get started.</p>
+        
+        <label class="license-label" for="license-key">License Key</label>
+        <div class="input-container">
+            <input type="text" id="license-key" class="license-input" placeholder="LARP-XXXX-XXXX-XXXX" maxlength="19" autocomplete="off" spellcheck="false">
+        </div>
+        <button id="activate-btn" class="activate-btn">
+            Activate License
+            <i class="fas fa-arrow-right"></i>
+        </button>
+        <p id="license-message" style="margin-top:14px;font-size:13px;color:#f97373;display:none;"></p>
+        
+        <a href="https://coinlarp.com/" class="back-link">
+            <i class="fas fa-arrow-left"></i>
+            Back To Home
+        </a>
+    </div>
+
+    <script>
+        const licenseInput = document.getElementById('license-key');
+        const activateBtn = document.getElementById('activate-btn');
+        const messageEl = document.getElementById('license-message');
+
+        function getOrCreateDeviceId() {
+            try {
+                let deviceId = localStorage.getItem('device_id');
+                if (deviceId) return deviceId;
+                
+                // Generate UUID
+                if (window.crypto && window.crypto.randomUUID) {
+                    deviceId = crypto.randomUUID();
+                } else {
+                    // Fallback: Generate UUID-like ID
+                    deviceId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                        const r = Math.random() * 16 | 0;
+                        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                        return v.toString(16);
+                    });
+                }
+                
+                localStorage.setItem('device_id', deviceId);
+                return deviceId;
+            } catch (e) {
+                // Safari private browsing or other issues - use sessionStorage
+                try {
+                    let deviceId = sessionStorage.getItem('device_id');
+                    if (deviceId) return deviceId;
+                    
+                    deviceId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                        const r = Math.random() * 16 | 0;
+                        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                        return v.toString(16);
+                    });
+                    
+                    sessionStorage.setItem('device_id', deviceId);
+                    return deviceId;
+                } catch (e2) {
+                    // Last resort: simple ID
+                    return 'device_' + Date.now() + '_' + Math.random().toString(36).substring(2, 15);
+                }
+            }
+        }
+
+        licenseInput.addEventListener('input', function(e) {
+            let value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+            let formatted = '';
+            
+            // Format: LARP-XXXX-XXXX-XXXX (19 characters total)
+            // First segment with prefix: LARP- (5 chars)
+            // Then 4-4-4 pattern
+            
+            if (value.length > 0) {
+                // Add LARP- prefix if not present
+                if (!value.startsWith('LARP')) {
+                    formatted = 'LARP-';
+                }
+                
+                let remaining = value.startsWith('LARP') ? value.substring(4) : value;
+                
+                for (let i = 0; i < remaining.length && i < 12; i++) {
+                    if (i > 0 && i % 4 === 0) {
+                        formatted += '-';
+                    }
+                    formatted += remaining[i];
+                }
+                
+                // Ensure LARP- prefix is included
+                if (value.startsWith('LARP') && !formatted.startsWith('LARP')) {
+                    formatted = 'LARP-' + formatted;
+                }
+            }
+            
+            e.target.value = formatted;
+        });
+
+        activateBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            messageEl.style.display = 'none';
+            const rawKey = licenseInput.value.trim();
+            if (!rawKey || rawKey.length < 19) {
+                messageEl.textContent = 'Please enter a valid license key.';
+                messageEl.style.display = 'block';
+                return;
+            }
+
+            const deviceId = getOrCreateDeviceId();
+            if (!deviceId) {
+                messageEl.textContent = 'Could not generate device ID. Please use a modern browser.';
+                messageEl.style.display = 'block';
+                return;
+            }
+
+            activateBtn.disabled = true;
+            activateBtn.textContent = 'Activating...';
+
+            try {
+                const res = await fetch('/api/license/activate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ key: rawKey, deviceId })
+                });
+
+                const text = await res.text();
+                let data = {};
+                try {
+                    data = text ? JSON.parse(text) : {};
+                } catch {
+                    throw new Error('Server error while activating license. Please try again later.');
+                }
+
+                if (!res.ok) {
+                    throw new Error(data.error || 'Error while activating license');
+                }
+                window.location.href = 'welcome.html';
+            } catch (err) {
+                messageEl.textContent = err.message;
+                messageEl.style.display = 'block';
+            } finally {
+                activateBtn.disabled = false;
+                activateBtn.innerHTML = 'Activate License <i class="fas fa-arrow-right"></i>';
+            }
+        });
+    </script>
+</body>
+</html>

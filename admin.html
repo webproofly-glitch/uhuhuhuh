@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coinlarp Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="apple-touch-icon" href="/favicon.svg">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --bg: #0a0a0a;
+            --bg-secondary: #111111;
+            --bg-tertiary: #1a1a1a;
+            --border: #252525;
+            --border-focus: #A3F361;
+            --text: #ffffff;
+            --text-secondary: #888888;
+            --text-muted: #555555;
+            --primary: #A3F361;
+            --primary-hover: #8ad954;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+        
+        body {
+            font-family: 'Urbanist', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 24px;
+        }
+
+        /* Logo */
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            margin-bottom: 32px;
+        }
+        .logo img {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+        }
+        .logo span {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .logo span span { color: var(--primary); }
+
+        /* Container */
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            margin: auto;
+        }
+
+        /* Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 24px;
+            align-items: start;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            height: 420px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .card-header {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+        
+        .card.list-card {
+            height: 440px;
+        }
+        
+        .card.create-card {
+            height: auto;
+            min-height: 220px;
+        }
+        
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        .card-title i { color: var(--primary); }
+        
+        .badge {
+            background: var(--primary);
+            color: var(--bg);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* Form Elements */
+        .form-group { margin-bottom: 16px; }
+        
+        .form-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .form-input, .form-select {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--border-focus);
+            box-shadow: 0 0 0 3px rgba(163, 243, 97, 0.15);
+        }
+        
+        .form-input::placeholder { color: var(--text-muted); }
+        
+        .form-input.monospace {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 13px;
+        }
+
+        /* Button */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 14px 20px;
+            background: var(--primary);
+            color: var(--bg);
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn:hover { background: var(--primary-hover); transform: translateY(-1px); }
+        .btn:active { transform: translateY(0); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+        
+        .btn-secondary:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: transparent;
+        }
+
+        /* Created Key */
+        .created-key {
+            padding: 12px;
+            background: var(--bg-secondary);
+            border: 1px dashed var(--border);
+            border-radius: 10px;
+            margin-top: 16px;
+            margin-bottom: 16px;
+            max-width: 320px;
+            width: 100%;
+        }
+        
+        .created-key input {
+            background: rgba(163, 243, 97, 0.1);
+            border-color: var(--primary);
+            color: var(--primary);
+            cursor: pointer;
+            word-break: break-all;
+            font-size: 12px;
+        }
+
+        /* Search Filter */
+        .search-filter {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .search-filter .search {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .search-filter .form-select {
+            width: 140px;
+            padding: 10px 12px;
+            font-size: 13px;
+        }
+
+        /* Search */
+        .search {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            margin-bottom: 16px;
+        }
+        
+        .search i { color: var(--text-muted); font-size: 14px; }
+        
+        .search input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text);
+            font-size: 14px;
+            outline: none;
+        }
+        
+        .search input::placeholder { color: var(--text-muted); }
+
+        /* License List */
+        .license-list {
+            max-height: 340px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+        
+        .license-list::-webkit-scrollbar { width: 6px; }
+        .license-list::-webkit-scrollbar-track { background: var(--bg-tertiary); border-radius: 3px; }
+        .license-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        .license-list::-webkit-scrollbar-thumb:hover { background: #333; }
+
+        .license-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            margin-bottom: 8px;
+            transition: border-color 0.2s;
+        }
+        
+        .license-item:hover { border-color: #333; }
+        
+        .license-checkbox {
+            width: 18px;
+            height: 18px;
+            margin-right: 12px;
+            cursor: pointer;
+            accent-color: var(--primary);
+        }
+        
+        .license-info { flex: 1; min-width: 0; }
+        
+        .license-key {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 13px;
+            color: var(--primary);
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .license-key:hover { text-decoration: underline; }
+        
+        .license-plan {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+        
+        .license-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 6px;
+            font-size: 10px;
+            color: #666;
+        }
+        
+        .license-details .detail {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .license-details .detail i {
+            font-size: 9px;
+            color: #444;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+        
+        .status.active {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+        
+        .status.disabled {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+        
+        .status.expired {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+        }
+        
+        .license-actions {
+            display: flex;
+            gap: 6px;
+            margin-left: 12px;
+        }
+        
+        .action-btn {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .action-btn:hover { color: var(--text); }
+        
+        .action-btn.activate:hover {
+            background: var(--success);
+            border-color: var(--success);
+        }
+        
+        .action-btn.deactivate:hover {
+            background: var(--warning);
+            border-color: var(--warning);
+        }
+        
+        .action-btn.delete:hover {
+            background: var(--danger);
+            border-color: var(--danger);
+        }
+
+        /* Empty */
+        .empty {
+            text-align: center;
+            padding: 48px 24px;
+            color: var(--text-muted);
+        }
+        
+        .empty i {
+            font-size: 40px;
+            margin-bottom: 16px;
+            display: block;
+            opacity: 0.3;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 32px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+        
+        .toast.success { background: var(--success); color: white; }
+        .toast.error { background: var(--danger); color: white; }
+
+        /* Back Link */
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 24px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        
+        .back-link:hover { color: var(--primary); }
+
+        /* Responsive */
+        @media (max-width: 850px) {
+            .grid { grid-template-columns: 1fr; }
+            .license-list { max-height: 300px; }
+            .search-filter { flex-direction: column; }
+            .search-filter .form-select { width: 100%; }
+        }
+        
+        @media (max-width: 480px) {
+            body { padding: 20px 16px; }
+            .card { padding: 20px; }
+            .created-key { max-width: 100%; }
+            .created-key input { font-size: 11px; }
+        }
+
+        /* Cool Login Animation */
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 10, 10, 0.85);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(0px) grayscale(100%);
+            opacity: 0;
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .login-overlay.active {
+            display: flex;
+            backdrop-filter: blur(30px) grayscale(0%);
+            animation: blurIn 0.8s ease-out forwards;
+        }
+
+        .login-overlay.fade-out {
+            opacity: 0;
+            backdrop-filter: blur(50px) grayscale(100%);
+            transition: all 0.5s ease-in;
+        }
+
+        @keyframes blurIn {
+            0% {
+                backdrop-filter: blur(0px) grayscale(100%);
+                opacity: 0;
+            }
+            100% {
+                backdrop-filter: blur(30px) grayscale(0%);
+                opacity: 1;
+            }
+        }
+
+        /* Content Fade In Animation */
+        .grid, .back-link {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: contentFadeIn 0.6s ease-out forwards;
+        }
+
+        .grid { animation-delay: 0.1s; }
+        .back-link { animation-delay: 0.2s; }
+
+        @keyframes contentFadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(163, 243, 97, 0.2);
+            border-top-color: #A3F361;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .login-message {
+            position: absolute;
+            bottom: 100px;
+            font-size: 14px;
+            color: #888;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* Status for inactive keys */
+        .status.inactive {
+            background: rgba(136, 136, 136, 0.2);
+            color: #888888;
+        }
+    </style>
+</head>
+<body>
+    <!-- Cool Login Animation Overlay -->
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-spinner"></div>
+        <div class="login-message" id="loginMessage">Authenticating...</div>
+    </div>
+
+    <!-- Logo -->
+    <a href="https://coinlarp.com/" class="logo">
+        <img src="/logo.png" alt="Logo">
+        <span>Coin<span>larp</span></span>
+    </a>
+
+    <div class="container">
+        
+        <!-- Locked State -->
+        <div class="card" id="lockedCard" style="max-width: 340px; margin: 0 auto; height: auto; padding: 24px;">
+            <div class="card-header">
+                <div class="card-title">
+                    <i class="fas fa-shield-alt"></i>
+                    Admin Access
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" class="form-input" id="password" placeholder="Enter admin password" onkeyup="if(event.key==='Enter')unlock()">
+            </div>
+            <button class="btn" onclick="unlock()">
+                Unlock Panel
+                <i class="fas fa-lock-open"></i>
+            </button>
+        </div>
+
+        <!-- Manager -->
+        <div class="grid" id="managerSection" style="display: none;">
+            
+            <!-- Create Card -->
+            <div class="card create-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-plus-circle"></i>
+                        New License
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Plan</label>
+                    <select class="form-select" id="plan">
+                        <option value="starter">Starter - 7 Days</option>
+                        <option value="pro">Pro - 30 Days</option>
+                        <option value="advanced">Advanced - Lifetime</option>
+                    </select>
+                </div>
+                
+                <div style="margin: 12px 0;">
+                    <a href="#" onclick="document.getElementById('advancedOptions').style.display='block';this.style.display='none';return false;" style="color:var(--primary);font-size:13px;">+ Advanced Options</a>
+                </div>
+                <div id="advancedOptions" style="display:none;">
+                    <div class="form-group">
+                        <label class="form-label">Custom Key</label>
+                        <input type="text" class="form-input monospace" id="customKey" placeholder="Leave empty for auto-generate">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Quantity</label>
+                        <input type="number" class="form-input" id="quantity" placeholder="1" value="1" min="1" max="100">
+                    </div>
+                </div>
+                
+                <button class="btn" id="createBtn" onclick="createLicense()">
+                    <i class="fas fa-plus-circle"></i>
+                    Create License
+                </button>
+                
+                <div class="created-key" id="createdKey" style="margin-top:16px;">
+                    <div class="form-group" style="margin-bottom: 8px;">
+                        <label class="form-label">License Key</label>
+                        <input type="text" class="form-input monospace" id="newKey" placeholder="LARP-XXXX-XXXX-XXXX" readonly onclick="copyKey()">
+                    </div>
+                </div>
+            </div>
+
+            <!-- List Card -->
+            <div class="card list-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-list"></i>
+                        All Licenses
+                    </div>
+                    <span class="badge" id="count">0</span>
+                </div>
+                
+                <div class="search-filter">
+                    <div class="search">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Search" id="searchInput" oninput="filter()">
+                    </div>
+                    <select class="form-select" id="statusFilter" onchange="filter()">
+                        <option value="all">All</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="active">Active</option>
+                        <option value="expired">Expired</option>
+                    </select>
+                    <select class="form-select" id="planFilter" onchange="filter()" style="width:180px;">
+                        <option value="all">All Plans</option>
+                        <option value="starter">Starter - 7 Days</option>
+                        <option value="pro">Pro - 30 Days</option>
+                        <option value="advanced">Advanced - Lifetime</option>
+                    </select>
+                </div>
+                
+                <div class="license-list-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                        <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                        <span>Select All</span>
+                    </label>
+                    <div style="display:flex;gap:8px;">
+                        <button class="btn btn-secondary" onclick="deleteSelected()" style="width:auto;padding:8px 16px;font-size:12px;">
+                            <i class="fas fa-trash"></i> Delete Selected
+                        </button>
+                        <button class="btn btn-secondary" onclick="copySelected()" style="width:auto;padding:8px 16px;font-size:12px;">
+                            <i class="fas fa-copy"></i> Copy Selected
+                        </button>
+                    </div>
+                </div>
+                <div class="license-list" id="licensesList">
+                    <div class="empty">
+                        <i class="fas fa-inbox"></i>
+                        No licenses found
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <a href="https://coinlarp.com/" class="back-link" id="backLink" style="display: none;">
+        <i class="fas fa-arrow-left"></i>
+        Back to Home
+    </a>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // State
+        let password = '';
+        let licenses = [];
+
+        // Init
+        window.addEventListener('DOMContentLoaded', () => {
+            if (localStorage.getItem('admin_unlocked') === 'true') {
+                password = localStorage.getItem('admin_password');
+                if (password) showManager();
+            }
+        });
+
+        // Toast
+        function toast(msg, type = 'success') {
+            const el = document.getElementById('toast');
+            el.textContent = msg;
+            el.className = `toast ${type} show`;
+            setTimeout(() => el.classList.remove('show'), 3000);
+        }
+
+        // Cool Login Animation - Blur Fade
+        function playLoginAnimation(callback) {
+            const overlay = document.getElementById('loginOverlay');
+            const message = document.getElementById('loginMessage');
+            
+            // Show overlay with blur
+            overlay.classList.add('active');
+            
+            // Change message
+            setTimeout(() => {
+                message.textContent = 'Access Granted';
+                message.style.color = '#A3F361';
+            }, 800);
+            
+            // Fade out with more blur
+            setTimeout(() => {
+                overlay.classList.add('fade-out');
+                setTimeout(() => {
+                    overlay.classList.remove('active', 'fade-out');
+                    message.textContent = 'Authenticating...';
+                    message.style.color = '#888';
+                    if (callback) callback();
+                }, 600);
+            }, 1500);
+        }
+
+        // Unlock
+        async function unlock() {
+            const pwd = document.getElementById('password').value.trim();
+            if (!pwd) return toast('Please enter password', 'error');
+            
+            // First verify the password
+            try {
+                const res = await fetch('/api/admin/licenses', { 
+                    headers: { 'x-admin-secret': pwd } 
+                });
+                
+                const text = await res.text();
+                let data = {};
+                try {
+                    data = text ? JSON.parse(text) : {};
+                } catch {
+                    throw new Error('Server error while logging in. Please try again later.');
+                }
+
+                if (!res.ok) {
+                    throw new Error(data.error || 'Invalid password');
+                }
+                
+                // Play animation only on success
+                playLoginAnimation(() => {
+                    password = pwd;
+                    localStorage.setItem('admin_password', pwd);
+                    localStorage.setItem('admin_unlocked', 'true');
+                    showManager();
+                });
+            } catch (e) {
+                toast(e.message || 'Invalid password', 'error');
+                localStorage.removeItem('admin_unlocked');
+                localStorage.removeItem('admin_password');
+            }
+        }
+
+        // Show Manager
+        function showManager() {
+            document.getElementById('lockedCard').style.display = 'none';
+            document.getElementById('managerSection').style.display = 'grid';
+            document.getElementById('backLink').style.display = 'inline-flex';
+            load();
+        }
+
+        // Load Licenses
+        async function load() {
+            try {
+                const res = await fetch('/api/admin/licenses', { 
+                    headers: { 'x-admin-secret': password } 
+                });
+                const text = await res.text();
+                let data = [];
+                try {
+                    data = text ? JSON.parse(text) : [];
+                } catch {
+                    throw new Error('Server error while loading licenses.');
+                }
+                if (!res.ok) throw new Error(data.error || 'Failed to load licenses');
+                licenses = data;
+                document.getElementById('count').textContent = licenses.length;
+
+                // Calculate stats
+                const now = new Date();
+                
+                render(licenses);
+                filter();
+            } catch (e) {
+                localStorage.removeItem('admin_unlocked');
+                localStorage.removeItem('admin_password');
+                toast('Session expired', 'error');
+                document.getElementById('lockedCard').style.display = 'block';
+                document.getElementById('managerSection').style.display = 'none';
+                document.getElementById('backLink').style.display = 'none';
+            }
+        }
+
+        // Render
+        function render(list) {
+            const container = document.getElementById('licensesList');
+            if (!list.length) {
+                container.innerHTML = '<div class="empty"><i class="fas fa-inbox"></i>No licenses found</div>';
+                return;
+            }
+            
+            function getStatus(l) {
+                // Inactive = not yet redeemed (is_active = 0 and no activation)
+                const isActive = Boolean(l.is_active);
+                if (!isActive && !l.activated_at) return '<span class="status inactive">Inactive</span>';
+                if (!isActive) return '<span class="status disabled">Disabled</span>';
+                if (l.expires_at && new Date(l.expires_at) < new Date()) return '<span class="status expired">Expired</span>';
+                return '<span class="status active">Active</span>';
+            }
+            
+            function fmtDate(d) {
+                if (!d) return '-';
+                return new Date(d).toLocaleDateString('de-DE');
+            }
+            
+            container.innerHTML = list.map(l => `
+                <div class="license-item">
+                    <input type="checkbox" class="license-checkbox" value="${l.license_key}">
+                    <div class="license-info">
+                        <div class="license-key" onclick="copy('${l.license_key}')">${l.license_key}</div>
+                        <div class="license-details">
+                            ${getStatus(l)}
+                            <span class="detail"><i class="fas fa-calendar"></i> Created: ${fmtDate(l.created_at)}</span>
+                            <span class="detail"><i class="fas fa-clock"></i> Expires: ${l.expires_at ? fmtDate(l.expires_at) : 'Never'}</span>
+                            <span class="detail"><i class="fas fa-desktop"></i> HWID: ${l.device_id || 'None'}</span>
+                        </div>
+                    </div>
+                    <div class="license-actions">
+                        <button class="action-btn activate" onclick="toggle('${l.license_key}', true)" title="Activate"><i class="fas fa-check"></i></button>
+                        <button class="action-btn delete" onclick="del('${l.license_key}')" title="Delete"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Filter
+        function filter() {
+            const q = document.getElementById('searchInput').value.toLowerCase();
+            const status = document.getElementById('statusFilter').value;
+            const plan = document.getElementById('planFilter').value;
+            const now = new Date();
+
+            let filtered = licenses.filter(l => {
+                // Search filter
+                const matchesSearch = !q || l.license_key.toLowerCase().includes(q) || l.plan.toLowerCase().includes(q);
+                
+                // Plan filter
+                const matchesPlan = plan === 'all' || l.plan === plan;
+                
+                // Status filter
+                let matchesStatus = true;
+                const isActive = Boolean(l.is_active);
+                if (status === 'inactive') {
+                    matchesStatus = !isActive && !l.activated_at;
+                } else if (status === 'active') {
+                    matchesStatus = isActive && (!l.expires_at || new Date(l.expires_at) > now);
+                } else if (status === 'expired') {
+                    matchesStatus = isActive && l.expires_at && new Date(l.expires_at) <= now;
+                }
+
+                return matchesSearch && matchesPlan && matchesStatus;
+            });
+
+            render(filtered);
+            currentFilteredList = filtered;
+            document.getElementById('count').textContent = filtered.length;
+        }
+
+        // Copy
+        function copy(key) {
+            navigator.clipboard.writeText(key).then(() => toast('Copied to clipboard')).catch(() => toast('Failed to copy', 'error'));
+        }
+
+        // Select All
+        let currentFilteredList = [];
+        function toggleSelectAll() {
+            const checked = document.getElementById('selectAll').checked;
+            document.querySelectorAll('.license-checkbox').forEach(cb => cb.checked = checked);
+        }
+
+        function copySelected() {
+            const checked = document.querySelectorAll('.license-checkbox:checked');
+            if (!checked.length) {
+                toast('No licenses selected', 'error');
+                return;
+            }
+            const keys = Array.from(checked).map(cb => cb.value);
+            navigator.clipboard.writeText(keys.join('\n')).then(() => toast('Copied ' + keys.length + ' licenses')).catch(() => toast('Failed to copy', 'error'));
+        }
+        
+        async function deleteSelected() {
+            const checked = document.querySelectorAll('.license-checkbox:checked');
+            if (!checked.length) {
+                toast('No licenses selected', 'error');
+                return;
+            }
+            if (!confirm('Delete ' + checked.length + ' license(s)?')) return;
+            
+            const keys = Array.from(checked).map(cb => cb.value);
+            let deleted = 0;
+            for (const key of keys) {
+                try {
+                    const res = await fetch(`/api/admin/license/${key}`, {
+                        method: 'DELETE',
+                        headers: { 'x-admin-secret': password }
+                    });
+                    if (res.ok) deleted++;
+                } catch (e) {}
+            }
+            toast('Deleted ' + deleted + ' license(s)');
+            load();
+        }
+
+        function copyKey() {
+            const key = document.getElementById('newKey').value;
+            if (key) copy(key);
+        }
+
+        // Create
+        async function createLicense() {
+            const btn = document.getElementById('createBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+            
+            try {
+                const customKey = document.getElementById('customKey').value.trim();
+                const quantity = parseInt(document.getElementById('quantity').value) || 1;
+                
+                const res = await fetch('/api/admin/create-license', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-admin-secret': password },
+                    body: JSON.stringify({ 
+                        plan: document.getElementById('plan').value,
+                        customKey: customKey || null,
+                        quantity: quantity
+                    })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Error');
+                
+                if (data.keys) {
+                    document.getElementById('newKey').value = data.keys.join('\n');
+                    document.getElementById('newKey').select();
+                    toast(data.keys.length + ' license(s) created');
+                } else {
+                    throw new Error('Invalid response');
+                }
+                load();
+            } catch (e) {
+                toast(e.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-plus-circle"></i> Create License';
+            }
+        }
+
+        // Toggle
+        async function toggle(key, active) {
+            try {
+                const res = await fetch(`/api/admin/license/${key}/toggle`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-admin-secret': password },
+                    body: JSON.stringify({ isActive: active })
+                });
+                if (!res.ok) throw new Error();
+                toast(active ? 'License activated' : 'License deactivated');
+                load();
+            } catch (e) {
+                toast('Action failed', 'error');
+            }
+        }
+
+        // Delete
+        async function del(key) {
+            try {
+                const res = await fetch(`/api/admin/license/${key}`, {
+                    method: 'DELETE',
+                    headers: { 'x-admin-secret': password }
+                });
+                if (!res.ok) throw new Error();
+                toast('License deleted');
+                load();
+            } catch (e) {
+                toast('Delete failed', 'error');
+            }
+        }
+    </script>
+</body>
+</html>
+

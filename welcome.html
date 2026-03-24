@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coinlarp</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Coinlarp">
+    <link rel="manifest" href="/site.webmanifest">
+    <link rel="icon" type="image/svg+xml" href="https://docs.phantom.com/favicon.svg">
+    <link rel="apple-touch-icon" href="https://docs.phantom.com/favicon.svg">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Urbanist', sans-serif;
+            background-color: #0a0a0a;
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        /* Logo */
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            margin-bottom: 24px;
+        }
+        
+        .logo img {
+            width: 44px;
+            height: 44px;
+            border-radius: 8px;
+        }
+        
+        .logo span {
+            color: #ffffff;
+            font-size: 22px;
+            font-weight: 700;
+        }
+        
+        .logo span span {
+            color: #A3F361;
+        }
+
+        .container {
+            max-width: 420px;
+            width: 100%;
+            background: #111111;
+            border-radius: 16px;
+            border: 1px solid #252525;
+            padding: 32px 28px;
+        }
+
+        /* Status Badge */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 6px 14px;
+            border-radius: 20px;
+            background: rgba(163, 243, 97, 0.1);
+            border: 1px solid rgba(163, 243, 97, 0.3);
+            color: #A3F361;
+            margin-bottom: 20px;
+        }
+
+        .badge i {
+            font-size: 10px;
+        }
+
+        h1 {
+            font-size: 26px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #ffffff;
+        }
+
+        p {
+            font-size: 14px;
+            color: #888888;
+            margin-bottom: 28px;
+            line-height: 1.6;
+        }
+
+        h2 {
+            font-size: 15px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Steps */
+        .steps {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            margin-bottom: 24px;
+        }
+
+        .step {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 12px 0;
+            position: relative;
+        }
+
+        .step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 44px;
+            bottom: -12px;
+            width: 2px;
+            background: linear-gradient(to bottom, #A3F361 0%, transparent 100%);
+            opacity: 0.3;
+        }
+
+        .step-num {
+            width: 32px;
+            height: 32px;
+            min-width: 32px;
+            border-radius: 50%;
+            background: #1a1a1a;
+            border: 2px solid #A3F361;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+            color: #A3F361;
+        }
+
+        .step-text {
+            font-size: 13px;
+            color: #b0b0b0;
+            line-height: 1.5;
+            padding-top: 5px;
+        }
+
+        .step-text strong {
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        /* Buttons */
+        .cta {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .btn-primary {
+            flex: 1;
+            padding: 14px 20px;
+            border-radius: 10px;
+            border: none;
+            background: #A3F361;
+            color: #0a0a0a;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .btn-primary:hover {
+            background: #8ad954;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            flex: 1;
+            padding: 14px 20px;
+            border-radius: 10px;
+            border: 1px solid #333333;
+            background: transparent;
+            color: #888888;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary:hover {
+            border-color: #A3F361;
+            color: #A3F361;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 24px 20px;
+            }
+            h1 {
+                font-size: 22px;
+            }
+            .cta {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Logo -->
+    <a href="home.html" class="logo">
+        <img src="/logo.png" alt="Coinlarp">
+        <span>Coin<span>larp</span></span>
+    </a>
+
+    <div class="container" id="content" style="display: none;">
+        <div class="badge">
+            <i class="fas fa-check-circle"></i>
+            License activated
+        </div>
+        
+        <h1>Welcome to Coinlarp</h1>
+        <p>Your license is active. Follow these steps to install Coinlarp as a standalone app on your device.</p>
+
+        <h2>Installation Steps</h2>
+        
+        <div class="steps">
+            <div class="step">
+                <div class="step-num">1</div>
+                <div class="step-text"><strong>Open this page in Safari.</strong><br>This will not work from Chrome or other browsers on iOS.</div>
+            </div>
+            <div class="step">
+                <div class="step-num">2</div>
+                <div class="step-text"><strong>Tap the Share Button.</strong><br>Tap the Share icon at the bottom of Safari's toolbar.</div>
+            </div>
+            <div class="step">
+                <div class="step-num">3</div>
+                <div class="step-text"><strong>Add to Home Screen.</strong><br>Tap "Add to Home Screen" in the share sheet.</div>
+            </div>
+            <div class="step">
+                <div class="step-num">4</div>
+                <div class="step-text"><strong>Tap Add.</strong><br>Coinlarp will now appear on your home screen.</div>
+            </div>
+        </div>
+
+        <p>After adding, tap the Coinlarp icon on your home screen to open the app.</p>
+
+        <div class="cta">
+            <a href="home.html" class="btn-secondary">Back to Home</a>
+        </div>
+    </div>
+
+    <script>
+        // Protect this page: only show if license is valid
+        (async function () {
+            try {
+                const res = await fetch('/api/license/validate', { credentials: 'include' });
+                const data = await res.json();
+                if (!data.valid) {
+                    window.location.href = '/dashboard.html';
+                    return;
+                }
+
+                const container = document.getElementById('content');
+                if (container) container.style.display = 'block';
+
+                // If opened as standalone PWA and license is valid, go directly to the app UI
+                if (window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches) {
+                    window.location.href = '/larp.html';
+                }
+            } catch {
+                window.location.href = '/dashboard.html';
+            }
+        })();
+    </script>
+</body>
+</html>

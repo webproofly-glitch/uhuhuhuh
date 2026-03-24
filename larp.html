@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+    <html lang="en">
+    <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Phantom" />
+    <meta name="application-name" content="Phantom" />
+    <meta name="theme-color" content="#9C90DD" />
+    <title>Phantom</title>
+    <link rel="icon" type="image/svg+xml" href="https://docs.phantom.com/favicon.svg" />
+    <link rel="apple-touch-icon" href="https://docs.phantom.com/favicon.svg" />
+    <link rel="manifest" href="site.webmanifest" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://site-assets.fontawesome.com/releases/v6.5.1/css/all.css">
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html,body,#root{height:100%}
+    :root{
+    --bg:#111111;--card:#232323;--card-hover:#2a2a2a;--purple:#7c3aed;--purple-soft:#a78bfa;
+    --green:#00A668;--red:#ef4444;--text:#fff;--text-secondary:#8b8b8b;--text-tertiary:#666;
+    --border:#2a2a2a;--popover:#1a1a1a;--secondary:#262626;
+    }
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;overscroll-behavior-y:contain;overflow:hidden;-webkit-user-select:none;user-select:none}
+    ::-webkit-scrollbar{width:0;height:0}
+    input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+    input[type=number]{appearance:textfield;-moz-appearance:textfield}
+    input,textarea,select{-webkit-user-select:text;user-select:text}
+    @keyframes rotation{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+    .loader{width:48px;height:48px;border:5px solid #FFF;border-bottom-color:transparent;border-radius:50%;display:inline-block;box-sizing:border-box;animation:rotation 1s linear infinite}
+    button{-webkit-tap-highlight-color:transparent}
+    .tap-feedback{transition:transform .18s cubic-bezier(.2,.8,.2,1),opacity .18s ease,filter .18s ease;transform:translateZ(0)}
+    .tap-feedback:active{transform:scale(.985)}
+    .tap-feedback-soft:active{transform:scale(.992)}
+    </style>
+    </head>
+    <body>
+    <div id="root"></div>
+    <script>
+    // Simple client-side protection using the new serverless validate endpoint
+    (async function () {
+        try {
+            const res = await fetch('/api/license/validate', { credentials: 'include' });
+            const data = await res.json();
+            if (!data.valid) {
+                window.location.href = '/dashboard.html';
+            }
+        } catch {
+            window.location.href = '/dashboard.html';
+        }
+    })();
+    </script>
+    <script type="text/babel">
+    const { useState, useCallback, useRef, useEffect } = React;
+    const TOKEN_DATA = [
+    { id:"ethereum", name:"Ethereum", symbol:"ETH", color:"#627EEA", icon:"eth" },
+    { id:"bitcoin", name:"Bitcoin", symbol:"BTC", color:"#F7931A", icon:"btc" },
+    { id:"monad", name:"Monad", symbol:"MON", color:"#836EF9", icon:"mon" },
+    { id:"solana", name:"Solana", symbol:"SOL", color:"#9945FF", icon:"sol" },
+    { id:"sui", name:"Sui", symbol:"SUI", color:"#4DA2FF", icon:"sui" },
+    { id:"polygon", name:"Polygon", symbol:"POL", color:"#8247E5", icon:"pol" },
+    { id:"hyper", name:"Hyperliquid", symbol:"HYPE", color:"#00D4AA", icon:"hype" },
+    ];
+    const TOKEN_DATA_BY_ID = Object.fromEntries(TOKEN_DATA.map(token => [token.id, token]));
+    const DEFAULT_TOKEN_ORDER = TOKEN_DATA.map(token => token.id);
+    const TOKEN_PRICES = { ethereum:1980.65, bitcoin:68520.30, monad:42.15, solana:148.50, sui:3.85, polygon:0.58, hyper:12.40 };
+    const TOKEN_CHANGE_RATES = { ethereum:0.005, bitcoin:-0.008, monad:0.005, solana:0.005, sui:0.005, polygon:-0.008, hyper:0.005 };
+    const CURRENCY_SYMBOLS = { USD:"$", EUR:"€", GBP:"£", JPY:"¥", CHF:"Fr." };
+    const CURRENCY_RATES = { USD:1, EUR:0.92, GBP:0.79, JPY:149.5, CHF:0.88 };
+    const CURRENCIES = ["USD","EUR","GBP","JPY","CHF"];
+    const NOTIFICATION_COINS = [
+    { id:'sol', symbol:'SOL', color:'#9945FF' },
+    { id:'eth', symbol:'ETH', color:'#627EEA' },
+    { id:'btc', symbol:'BTC', color:'#F7931A' },
+    { id:'mon', symbol:'MON', color:'#836EF9' },
+    { id:'sui', symbol:'SUI', color:'#4DA2FF' },
+    { id:'pol', symbol:'POL', color:'#8247E5' },
+    { id:'hype', symbol:'HYPE', color:'#00D4AA' },
+    { id:'usdt', symbol:'USDT', color:'#26A17B' },
+    { id:'usdc', symbol:'USDC', color:'#2775CA' },
+    ];
+    const NOTIFICATION_TIME_UNITS = { sec:1000, min:60000, hr:3600000 };
+    const APP_STORAGE_KEY = 'phantom-larp-app-state-v1';
+    const NOTIFICATION_STORAGE_KEY = 'phantom-larp-notification-state-v1';
+    const AVAILABLE_CURRENCIES = ['USD','EUR','GBP','JPY','CHF','CAD'];
+    const createInitialNotificationCoins = () => Object.fromEntries(NOTIFICATION_COINS.map(coin => [coin.id, { selected:false, from:'', to:'' }]));
+    const readStorage = (key, fallback) => {
+    try {
+        if (typeof window === 'undefined' || !window.localStorage) return fallback;
+        const raw = window.localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+    } catch (error) {
+        return fallback;
+    }
+    };
+    const writeStorage = (key, value) => {
+    try {
+        if (typeof window === 'undefined' || !window.localStorage) return;
+        window.localStorage.setItem(key, JSON.stringify(value));
+    } catch (error) {}
+    };
+    const normalizeTokenOrder = (value) => {
+    const seen = new Set();
+    const nextOrder = [];
+    if (Array.isArray(value)) {
+        value.forEach(id => {
+        if (DEFAULT_TOKEN_ORDER.includes(id) && !seen.has(id)) {
+            seen.add(id);
+            nextOrder.push(id);
+        }
+        });
+    }
+    DEFAULT_TOKEN_ORDER.forEach(id => {
+        if (!seen.has(id)) nextOrder.push(id);
+    });
+    return nextOrder;
+    };
+    const getDefaultAppState = () => ({
+    tokenAmounts: Object.fromEntries(TOKEN_DATA.map(token => [token.id, 0])),
+    tokenOrder: [...DEFAULT_TOKEN_ORDER],
+    cashBalance: 0,
+    walletDisplayName: 'CoinLarp',
+    walletHandle: 'coinlarp',
+    walletEmoji: '💸',
+    currency: 'USD',
+    });
+    const readPersistedAppState = () => {
+    const fallback = getDefaultAppState();
+    const stored = readStorage(APP_STORAGE_KEY, null);
+    if (!stored || typeof stored !== 'object') return fallback;
+    const tokenAmounts = Object.fromEntries(TOKEN_DATA.map(token => {
+        const amount = Number(stored.tokenAmounts && stored.tokenAmounts[token.id]);
+        return [token.id, Number.isFinite(amount) && amount >= 0 ? amount : 0];
+    }));
+    return {
+        tokenAmounts,
+        tokenOrder: normalizeTokenOrder(stored.tokenOrder),
+        cashBalance: Number.isFinite(Number(stored.cashBalance)) && Number(stored.cashBalance) >= 0 ? Number(stored.cashBalance) : fallback.cashBalance,
+        walletDisplayName: typeof stored.walletDisplayName === 'string' && stored.walletDisplayName.trim() ? stored.walletDisplayName : fallback.walletDisplayName,
+        walletHandle: typeof stored.walletHandle === 'string' && stored.walletHandle.replace(/@/g,'').trim() ? stored.walletHandle.replace(/@/g,'').trim() : fallback.walletHandle,
+        walletEmoji: getSingleEmoji(stored.walletEmoji) || fallback.walletEmoji,
+        currency: typeof stored.currency === 'string' && AVAILABLE_CURRENCIES.includes(stored.currency) ? stored.currency : fallback.currency,
+    };
+    };
+    const getDefaultNotificationState = () => ({
+    coinInputs: createInitialNotificationCoins(),
+    mode: 'manual',
+    autoType: 'random',
+    randomMin: '10',
+    randomMax: '30',
+    randomUnit: 'sec',
+    fixedEvery: '1',
+    fixedUnit: 'min',
+    });
+    const readPersistedNotificationState = () => {
+    const fallback = getDefaultNotificationState();
+    const stored = readStorage(NOTIFICATION_STORAGE_KEY, null);
+    if (!stored || typeof stored !== 'object') return fallback;
+    return {
+        coinInputs: Object.fromEntries(NOTIFICATION_COINS.map(coin => {
+        const config = stored.coinInputs && stored.coinInputs[coin.id] ? stored.coinInputs[coin.id] : fallback.coinInputs[coin.id];
+        return [coin.id, {
+            selected: !!config.selected,
+            from: typeof config.from === 'string' ? config.from : '',
+            to: typeof config.to === 'string' ? config.to : '',
+        }];
+        })),
+        mode: stored.mode === 'auto' ? 'auto' : 'manual',
+        autoType: stored.autoType === 'fixed' ? 'fixed' : 'random',
+        randomMin: typeof stored.randomMin === 'string' ? stored.randomMin : fallback.randomMin,
+        randomMax: typeof stored.randomMax === 'string' ? stored.randomMax : fallback.randomMax,
+        randomUnit: ['sec','min','hr'].includes(stored.randomUnit) ? stored.randomUnit : fallback.randomUnit,
+        fixedEvery: typeof stored.fixedEvery === 'string' ? stored.fixedEvery : fallback.fixedEvery,
+        fixedUnit: ['sec','min','hr'].includes(stored.fixedUnit) ? stored.fixedUnit : fallback.fixedUnit,
+    };
+    };
+    const formatTokenAmount = (value) => {
+    if (!Number.isFinite(value) || value <= 0) return '0';
+    return value.toLocaleString('en-US', {
+        useGrouping: false,
+        minimumFractionDigits: 0,
+        maximumFractionDigits: value < 1 ? 8 : 4,
+    });
+    };
+    const formatNotificationAmount = (value) => {
+    if (!Number.isFinite(value) || value <= 0) return '0';
+    return value.toLocaleString('en-US', {
+        useGrouping: false,
+        minimumFractionDigits: 0,
+        maximumFractionDigits: value < 1 ? 6 : 4,
+    });
+    };
+    const getSingleEmoji = (value) => {
+    const input = (value || '').trim();
+    if (!input) return '';
+    const segmenter = typeof Intl !== 'undefined' && Intl.Segmenter ? new Intl.Segmenter(undefined, { granularity:'grapheme' }) : null;
+    const parts = segmenter ? Array.from(segmenter.segment(input), ({ segment }) => segment) : Array.from(input);
+    for (const part of parts) {
+        if (/(\p{Extended_Pictographic}|\p{Regional_Indicator})/u.test(part)) return part;
+    }
+    return '';
+    };
+    function TokenIcon({ token, size = 40 }) {
+    const s = size;
+    const h = size + 1;
+    const icons = {
+        eth: <div style={{width:s,height:h,borderRadius:'50%',overflow:'hidden',display:'flex',background:'#111'}}><img src="https://icon-icons.com/download-file?file=https%3A%2F%2Fimages.icon-icons.com%2F2429%2FPNG%2F512%2Fethereum_logo_icon_147293.png&id=147293&pack_or_individual=pack" alt="Ethereum" style={{width:'100%',height:'100%',objectFit:'cover',display:'block'}} /></div>,
+        btc: <svg width={s} height={h} viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="20" fill="#F7931A"/><path d="M27.2 17.4c.4-2.5-1.5-3.8-4.2-4.7l.9-3.5-2.1-.5-.8 3.4c-.6-.1-1.1-.3-1.7-.4l.8-3.4-2.1-.5-.9 3.5c-.5-.1-.9-.2-1.4-.3l-2.9-.7-.6 2.2s1.5.4 1.5.4c.9.2 1 .7 1 1.1l-1 4.1c.1 0 .1 0 .2.1h-.2l-1.4 5.8c-.1.3-.4.7-1 .5 0 0-1.5-.4-1.5-.4l-1 2.4 2.7.7c.5.1 1 .3 1.5.4l-.9 3.5 2.1.5.9-3.5c.6.2 1.1.3 1.7.4l-.9 3.5 2.1.5.9-3.5c3.6.7 6.4.4 7.5-2.9.9-2.6 0-4.1-1.9-5.1 1.4-.3 2.4-1.3 2.7-3.2zM23.8 24c-.7 2.6-5.1 1.2-6.5.8l1.2-4.6c1.5.4 6 1.1 5.3 3.8zm.7-6.7c-.6 2.4-4.3 1.2-5.5.9l1-4.2c1.2.3 5.1.9 4.5 3.3z" fill="white"/></svg>,
+        mon: <div style={{width:s,height:h,borderRadius:'50%',overflow:'hidden',display:'flex',background:'#111'}}><img src="https://media.tenor.com/kiFLnXSFpb0AAAAe/monad-logo.png" alt="Monad" style={{width:'100%',height:'100%',objectFit:'cover',display:'block'}} /></div>,
+        sol: <div style={{width:s,height:h,borderRadius:'50%',overflow:'hidden',display:'flex',background:'#000'}}><img src="https://cdn.creativefabrica.com/2021/06/16/Cryptocurrency-Solana-Logo-Graphics-13460284-1-1-580x435.jpg" alt="Solana" style={{width:'100%',height:'100%',objectFit:'cover',display:'block',transform:'scale(1.28)'}} /></div>,
+        pol: <div style={{width:s,height:h,borderRadius:'50%',overflow:'hidden',display:'flex',background:'#111'}}><img src="https://cdn.vectorstock.com/i/1000v/45/46/polygon-cryptocurrency-logo-icon-crypto-currency-vector-49864546.jpg" alt="Polygon" style={{width:'100%',height:'100%',objectFit:'cover',objectPosition:'center -1px',display:'block',transform:'scale(1.12)'}} /></div>,
+        hype: <div style={{width:s,height:h,borderRadius:'50%',overflow:'hidden',display:'flex',alignItems:'center',justifyContent:'center',background:'transparent'}}><img src="https://app.hyperliquid.xyz/coins/HYPE_spot.svg" alt="Hyper" style={{width:'100%',height:'100%',objectFit:'contain',display:'block'}} /></div>,
+        sui: <div style={{width:s,height:h,borderRadius:'50%',overflow:'hidden',display:'flex',background:'#111'}}><img src="https://asset.brandfetch.io/idBUiFFswD/id-r38SxY1.jpeg" alt="Sui" style={{width:'100%',height:'100%',objectFit:'cover',display:'block'}} /></div>,
+    };
+    return icons[token] || <div style={{width:s,height:h,borderRadius:'50%',background:'#555'}}/>;
+    }
+    function SettingsModal({ open, onClose, tokenAmounts, onUpdateAmount, cashBalance, onUpdateCash, walletDisplayName, onUpdateDisplayName, walletHandle, onUpdateHandle, walletEmoji, onUpdateEmoji, currency, onUpdateCurrency, initialTab }) {
+    const [tab, setTab] = useState(initialTab||'tokens');
+    const [amountInputs, setAmountInputs] = useState({});
+    const [cashInput, setCashInput] = useState('');
+    const [currencyInput, setCurrencyInput] = useState(currency);
+    const [nameInput, setNameInput] = useState(walletDisplayName);
+    const [handleInput, setHandleInput] = useState(walletHandle);
+    const [emojiInput, setEmojiInput] = useState(getSingleEmoji(walletEmoji));
+    const [valueInputs, setValueInputs] = useState({});
+    const [shouldRender, setShouldRender] = useState(open);
+    const [isVisible, setIsVisible] = useState(open);
+    const openFrameRef = useRef(null);
+    const openFrame2Ref = useRef(null);
+    useEffect(() => {
+        if (open) {
+        setShouldRender(true);
+        setIsVisible(false);
+        openFrameRef.current = requestAnimationFrame(() => {
+            openFrame2Ref.current = requestAnimationFrame(() => setIsVisible(true));
+        });
+        return () => {
+            if (openFrameRef.current) cancelAnimationFrame(openFrameRef.current);
+            if (openFrame2Ref.current) cancelAnimationFrame(openFrame2Ref.current);
+        };
+        }
+        setIsVisible(false);
+        const timeout = setTimeout(() => setShouldRender(false), 300);
+        return () => clearTimeout(timeout);
+    }, [open]);
+    useEffect(() => {
+        if (open) {
+        setTab(initialTab||'tokens');
+        setAmountInputs(Object.fromEntries(TOKEN_DATA.map(t => [t.id, tokenAmounts[t.id] > 0 ? tokenAmounts[t.id].toString() : ''])));
+        setCashInput(cashBalance > 0 ? cashBalance.toString() : '');
+        setCurrencyInput(currency);
+        setNameInput(walletDisplayName);
+        setHandleInput(walletHandle);
+        setEmojiInput(getSingleEmoji(walletEmoji));
+        setValueInputs({});
+        }
+    }, [open, tokenAmounts, cashBalance, walletDisplayName, walletHandle, walletEmoji, currency, initialTab]);
+    // Prevent background scroll when modal is open
+    useEffect(() => {
+        if (shouldRender) {
+        document.body.style.overflow = 'hidden';
+        } else {
+        document.body.style.overflow = '';
+        }
+        return () => { document.body.style.overflow = ''; };
+    }, [shouldRender]);
+    if (!shouldRender) return null;
+    // Save logic for each tab
+    const handleSave = () => {
+        if (tab === 'tokens') {
+        Object.entries(amountInputs).forEach(([tokenId, val]) => {
+            const num = parseFloat(val);
+            if (!isNaN(num) && num >= 0) onUpdateAmount(tokenId, num);
+        });
+        } else if (tab === 'cash') {
+        const cashVal = parseFloat(cashInput);
+        if (!isNaN(cashVal) && cashVal >= 0) onUpdateCash(cashVal);
+        onUpdateCurrency(currencyInput);
+        } else if (tab === 'profile') {
+        onUpdateDisplayName(nameInput);
+        onUpdateHandle(handleInput);
+        onUpdateEmoji(getSingleEmoji(emojiInput) || getSingleEmoji(walletEmoji) || '💸');
+        }
+        onClose();
+    };
+    // Modal styles
+    const modalStyle = { position:'fixed',inset:0,zIndex:9999,background:'rgba(0,0,0,0.75)',display:'flex',alignItems:'flex-end',justifyContent:'center',transition:'opacity .3s cubic-bezier(.22,1,.36,1)',opacity:isVisible?1:0 };
+    const panelStyle = { background:'#1C1C1E',borderRadius:'24px 24px 0 0',width:'100%',maxWidth:430,maxHeight:'88vh',display:'flex',flexDirection:'column',overflow:'hidden',boxShadow:'0 -4px 60px rgba(0,0,0,0.7)',transform:isVisible?'translateY(0) scale(1)':'translateY(42px) scale(.972)',opacity:isVisible?1:.92,transition:'transform .34s cubic-bezier(.22,1,.36,1), opacity .3s cubic-bezier(.22,1,.36,1)',willChange:'transform, opacity' };
+    const tabBtnStyle = (active) => ({ flex:1,padding:'10px 0',borderRadius:10,border:'none',cursor:'pointer',background:active?'#AB9FF2':'#2C2C2E',color:active?'#000':'#9B9B9B',fontWeight:600,fontSize:14,fontFamily:'inherit',transition:'all .2s' });
+    const inputStyle = { width:'100%',padding:'12px 14px',borderRadius:12,background:'#2C2C2E',border:'1px solid #3A3A3C',color:'#fff',fontSize:15,outline:'none',boxSizing:'border-box',fontFamily:'inherit',marginBottom:14 };
+    const labelStyle = { color:'#9B9B9B',fontSize:12,marginBottom:8,fontWeight:500,textTransform:'uppercase',letterSpacing:'0.5px' };
+    const saveBtnStyle = { width:'100%',padding:'16px',borderRadius:14,border:'none',background:'#AB9FF2',color:'#000',fontWeight:700,fontSize:16,cursor:'pointer',fontFamily:'inherit',marginTop:8 };
+    return (
+        <div style={modalStyle} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+        <div style={panelStyle} onClick={e=>e.stopPropagation()}>
+            <div style={{ display:'flex',justifyContent:'center',padding:'12px 0 4px' }}>
+            <div style={{ width:36,height:4,borderRadius:2,background:'#3A3A3C' }}/>
+            </div>
+            <div style={{ display:'flex',alignItems:'center',justifyContent:'space-between',padding:'8px 20px 12px' }}>
+            <h2 style={{ color:'#fff',fontSize:18,fontWeight:700,margin:0 }}>Settings</h2>
+            <button onClick={onClose} style={{ background:'#2C2C2E',border:'none',borderRadius:'50%',width:30,height:30,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer' }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+            </div>
+            <div style={{ display:'flex',gap:6,padding:'0 20px 12px' }}>
+            <button style={tabBtnStyle(tab==='tokens')} onClick={()=>setTab('tokens')}>Tokens</button>
+            <button style={tabBtnStyle(tab==='cash')} onClick={()=>setTab('cash')}>Cash</button>
+            <button style={tabBtnStyle(tab==='profile')} onClick={()=>setTab('profile')}>Profile</button>
+            </div>
+            <div style={{ flex:1,overflowY:'auto',padding:'0 20px' }}>
+            {/* TOKENS TAB */}
+            {tab === 'tokens' && (
+                <div style={{ paddingBottom:24 }}>
+                {/* Hinweis-Box zur Währungsänderung */}
+                <div style={{background:'#23232A',borderRadius:12,padding:'12px 16px',marginBottom:18,display:'flex',alignItems:'center',gap:10}}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#AB9FF2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r="1"/></svg>
+                    <span style={{color:'#AB9FF2',fontSize:13,fontWeight:500}}>You can change the currency in the <b>Cash</b> tab.</span>
+                </div>
+                <p style={{ color:'#9B9B9B',fontSize:13,marginBottom:16 }}>Set token amounts in your portfolio</p>
+                {TOKEN_DATA.map(token => {
+                    const tokenPrice = (TOKEN_PRICES[token.id]||0) * (CURRENCY_RATES[currencyInput]||1);
+                    const amount = amountInputs[token.id] ?? '';
+                    const handleValueInput = (val) => {
+                    setValueInputs(p => ({ ...p, [token.id]: val }));
+                    const num = parseFloat(val);
+                    if (val === '') {
+                        setAmountInputs(p => ({ ...p, [token.id]: '' }));
+                    } else if (!isNaN(num) && tokenPrice > 0) {
+                        setAmountInputs(p => ({ ...p, [token.id]: formatTokenAmount(num / tokenPrice) }));
+                    }
+                    };
+                    return (
+                    <div key={token.id} style={{ marginBottom:18 }}>
+                        <div style={{ display:'flex',alignItems:'center',gap:10,marginBottom:7 }}>
+                        <TokenIcon token={token.icon} size={28}/>
+                        <div><span style={{ color:'#fff',fontWeight:600,fontSize:14 }}>{token.name}</span><span style={{ color:'#6B6B75',fontSize:12,marginLeft:6 }}>{token.symbol}</span></div>
+                        </div>
+                        <div style={{ position:'relative', marginBottom:8 }}>
+                        <input type="number" placeholder={`0`} value={amount}
+                            onChange={e => setAmountInputs(p => ({ ...p, [token.id]: e.target.value }))}
+                            style={{ ...inputStyle, paddingRight:52, marginBottom:0 }}
+                        />
+                        <span style={{ position:'absolute',right:14,top:'50%',transform:'translateY(-50%)',color:'#6B6B75',fontSize:13,pointerEvents:'none' }}>{token.symbol}</span>
+                        </div>
+                        {/* Neues Value-Input */}
+                        <div style={{ position:'relative', marginBottom:0 }}>
+                        <input type="number" placeholder={`Value in ${currencyInput}`} value={valueInputs[token.id]||''}
+                            onChange={e => handleValueInput(e.target.value)}
+                            style={{ ...inputStyle, paddingLeft:34, marginBottom:0 }}
+                        />
+                        <span style={{ position:'absolute',left:14,top:'50%',transform:'translateY(-50%)',color:'#6B6B75',fontSize:13,pointerEvents:'none' }}>{CURRENCY_SYMBOLS[currencyInput]||currencyInput}</span>
+                        </div>
+                        {amount && parseFloat(amount) > 0 && (
+                        <p style={{ color:'#AB9FF2',fontSize:12,marginTop:4,marginLeft:2 }}>
+                            ≈ {(parseFloat(amount) * tokenPrice).toLocaleString('en-US',{ minimumFractionDigits:2,maximumFractionDigits:2 })} {currencyInput}
+                        </p>
+                        )}
+                    </div>
+                    );
+                })}
+                </div>
+            )}
+            {/* CASH TAB */}
+            {tab === 'cash' && (
+                <div style={{ paddingBottom:24 }}>
+                <p style={{ color:'#9B9B9B',fontSize:13,marginBottom:16 }}>Set your cash balance</p>
+                <div style={{ position:'relative',marginBottom:20 }}>
+                    <span style={{ position:'absolute',left:14,top:'50%',transform:'translateY(-50%)',color:'#6B6B75',fontSize:16 }}>{CURRENCY_SYMBOLS[currencyInput]||currencyInput}</span>
+                    <input type="number" placeholder="0.00" value={cashInput} onChange={e => setCashInput(e.target.value)}
+                    style={{ ...inputStyle, paddingLeft:34, fontSize:20, fontWeight:700, marginBottom:0 }}
+                    />
+                </div>
+                <p style={{ color:'#9B9B9B',fontSize:13,marginBottom:10 }}>Currency</p>
+                <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:8 }}>
+                    {["USD","EUR","GBP","JPY","CHF","CAD"].map(cur => {
+                    const active = currencyInput === cur;
+                    return (
+                        <button key={cur} type="button" onClick={() => setCurrencyInput(cur)} style={{ padding:'10px 12px',borderRadius:10,border:`1.5px solid ${active?'#AB9FF2':'#3A3A3C'}`,background:active?'rgba(171,159,242,0.12)':'#2C2C2E',color:active?'#AB9FF2':'#9B9B9B',display:'flex',alignItems:'center',justifyContent:'space-between',cursor:'pointer',fontFamily:'inherit',fontWeight:700,fontSize:15 }}>
+                        <span>{cur}</span>
+                        {active && (
+                            <span style={{ width:16,height:16,borderRadius:'50%',background:'#AB9FF2',display:'inline-block',marginLeft:8 }}></span>
+                        )}
+                        </button>
+                    );
+                    })}
+                </div>
+                </div>
+            )}
+            {/* PROFILE TAB */}
+            {tab === 'profile' && (
+                <div style={{ paddingBottom:24 }}>
+                <p style={{ color:'#9B9B9B',fontSize:13,marginBottom:16 }}>Customize your wallet profile</p>
+                <div style={{ marginBottom:18 }}>
+                    <div style={labelStyle}>Avatar Emoji</div>
+                    <input value={emojiInput} onChange={e => setEmojiInput(getSingleEmoji(e.target.value))} placeholder="-" inputMode="text" autoComplete="off" autoCorrect="off" spellCheck={false}
+                        style={{ ...inputStyle, width:76, padding:'12px 8px', fontSize:24, textAlign:'center', marginBottom:0 }}
+                    />
+                </div>
+                <div style={labelStyle}>Wallet Name</div>
+                <input value={nameInput} onChange={e => setNameInput(e.target.value)} placeholder="Wallet Name"
+                    style={{ ...inputStyle, fontWeight:600, marginBottom:14 }}
+                />
+                <div style={labelStyle}>@Handle</div>
+                <div style={{ position:'relative' }}>
+                    <span style={{ position:'absolute',left:14,top:'50%',transform:'translateY(-50%)',color:'#6B6B75',fontSize:16 }}>@</span>
+                    <input value={handleInput.replace(/^@+/,"")} onChange={e => setHandleInput(e.target.value.replace(/@/g,"").replace(/^\s+|\s+$/g, ""))} placeholder="handle"
+                    style={{ ...inputStyle, paddingLeft:30, marginBottom:0 }}
+                    />
+                </div>
+                </div>
+            )}
+            </div>
+            <div style={{ padding:'12px 20px 28px' }}>
+            <button onClick={handleSave} style={saveBtnStyle}>Save Changes</button>
+            </div>
+        </div>
+        </div>
+    );
+    }
+    function ReceiveNotificationModal({ open, onClose }) {
+    const initialNotificationState = useRef(readPersistedNotificationState()).current;
+    const [permission, setPermission] = useState(typeof Notification === 'undefined' ? 'unsupported' : Notification.permission);
+    const [coinInputs, setCoinInputs] = useState(initialNotificationState.coinInputs);
+    const [mode, setMode] = useState(initialNotificationState.mode);
+    const [autoType, setAutoType] = useState(initialNotificationState.autoType);
+    const [randomMin, setRandomMin] = useState(initialNotificationState.randomMin);
+    const [randomMax, setRandomMax] = useState(initialNotificationState.randomMax);
+    const [randomUnit, setRandomUnit] = useState(initialNotificationState.randomUnit);
+    const [fixedEvery, setFixedEvery] = useState(initialNotificationState.fixedEvery);
+    const [fixedUnit, setFixedUnit] = useState(initialNotificationState.fixedUnit);
+    const [statusMessage, setStatusMessage] = useState('');
+    const [autoRunning, setAutoRunning] = useState(false);
+    const [shouldRender, setShouldRender] = useState(open);
+    const [isVisible, setIsVisible] = useState(open);
+    const openFrameRef = useRef(null);
+    const openFrame2Ref = useRef(null);
+    const autoTimerRef = useRef(null);
+    const autoRunningRef = useRef(false);
+    const nextAutoAtRef = useRef(null);
+    const clearAutoTimer = useCallback((message='') => {
+        autoRunningRef.current = false;
+        nextAutoAtRef.current = null;
+        if (autoTimerRef.current) {
+        clearTimeout(autoTimerRef.current);
+        autoTimerRef.current = null;
+        }
+        setAutoRunning(false);
+        if (message) setStatusMessage(message);
+    }, []);
+    const closeModal = useCallback(() => {
+        onClose();
+    }, [onClose]);
+    useEffect(() => {
+        if (open) {
+        setShouldRender(true);
+        setIsVisible(false);
+        setPermission(typeof Notification === 'undefined' ? 'unsupported' : Notification.permission);
+        setStatusMessage('');
+        openFrameRef.current = requestAnimationFrame(() => {
+            openFrame2Ref.current = requestAnimationFrame(() => setIsVisible(true));
+        });
+        return () => {
+            if (openFrameRef.current) cancelAnimationFrame(openFrameRef.current);
+            if (openFrame2Ref.current) cancelAnimationFrame(openFrame2Ref.current);
+        };
+        }
+        setIsVisible(false);
+        const timeout = setTimeout(() => setShouldRender(false), 300);
+        return () => clearTimeout(timeout);
+    }, [open]);
+    useEffect(() => {
+        if (shouldRender) {
+        document.body.style.overflow = 'hidden';
+        } else {
+        document.body.style.overflow = '';
+        }
+        return () => { document.body.style.overflow = ''; };
+    }, [shouldRender]);
+    useEffect(() => () => {
+        autoRunningRef.current = false;
+        nextAutoAtRef.current = null;
+        if (autoTimerRef.current) clearTimeout(autoTimerRef.current);
+    }, []);
+    useEffect(() => {
+        writeStorage(NOTIFICATION_STORAGE_KEY, { coinInputs, mode, autoType, randomMin, randomMax, randomUnit, fixedEvery, fixedUnit });
+    }, [coinInputs, mode, autoType, randomMin, randomMax, randomUnit, fixedEvery, fixedUnit]);
+    const getEligibleCoins = useCallback(() => {
+        return NOTIFICATION_COINS.map(coin => {
+        const config = coinInputs[coin.id] || {};
+        const from = parseFloat(config.from);
+        const to = parseFloat(config.to);
+        if (!config.selected || !Number.isFinite(from) || !Number.isFinite(to) || from < 0 || to < 0) return null;
+        return { ...coin, min:Math.min(from, to), max:Math.max(from, to) };
+        }).filter(Boolean);
+    }, [coinInputs]);
+    const ensurePermission = useCallback(() => {
+        if (typeof Notification === 'undefined') {
+        setStatusMessage('Push notifications are not supported here.');
+        return false;
+        }
+        if (permission !== 'granted') {
+        setStatusMessage('Enable push notifications first.');
+        return false;
+        }
+        return true;
+    }, [permission]);
+    const ensureCoinSetup = useCallback(() => {
+        const eligible = getEligibleCoins();
+        if (!eligible.length) {
+        setStatusMessage('Select at least one coin and set from/to amounts.');
+        return null;
+        }
+        return eligible;
+    }, [getEligibleCoins]);
+    const sendNotification = useCallback(() => {
+        if (!ensurePermission()) return false;
+        const eligible = ensureCoinSetup();
+        if (!eligible) return false;
+        const coin = eligible[Math.floor(Math.random() * eligible.length)];
+        const amount = coin.min === coin.max ? coin.min : coin.min + Math.random() * (coin.max - coin.min);
+        const formattedAmount = formatNotificationAmount(amount);
+        new Notification('Notification', {
+        body:`You received ${formattedAmount} ${coin.symbol}`,
+        icon:'apple-touch-icon.png',
+        tag:'phantom-receive',
+        });
+        setStatusMessage(`Sent ${formattedAmount} ${coin.symbol}.`);
+        return true;
+    }, [ensurePermission, ensureCoinSetup]);
+    const getAutoDelay = useCallback(() => {
+        if (autoType === 'random') {
+        const min = parseFloat(randomMin);
+        const max = parseFloat(randomMax);
+        if (!Number.isFinite(min) || !Number.isFinite(max) || min <= 0 || max <= 0) return null;
+        const low = Math.min(min, max);
+        const high = Math.max(min, max);
+        const value = low === high ? low : low + Math.random() * (high - low);
+        return value * (NOTIFICATION_TIME_UNITS[randomUnit] || 1000);
+        }
+        const every = parseFloat(fixedEvery);
+        if (!Number.isFinite(every) || every <= 0) return null;
+        return every * (NOTIFICATION_TIME_UNITS[fixedUnit] || 60000);
+    }, [autoType, randomMin, randomMax, randomUnit, fixedEvery, fixedUnit]);
+    const queueAutoTick = useCallback((delay) => {
+        if (!autoRunningRef.current) return;
+        nextAutoAtRef.current = Date.now() + delay;
+        if (autoTimerRef.current) clearTimeout(autoTimerRef.current);
+        autoTimerRef.current = setTimeout(() => {
+        const sent = sendNotification();
+        if (!sent) {
+            clearAutoTimer();
+            return;
+        }
+        const nextDelay = getAutoDelay();
+        if (nextDelay == null) {
+            clearAutoTimer('Set a valid auto interval.');
+            return;
+        }
+        queueAutoTick(nextDelay);
+        }, delay);
+    }, [sendNotification, clearAutoTimer, getAutoDelay]);
+    const scheduleNextAuto = useCallback(() => {
+        if (!autoRunningRef.current) return;
+        const delay = getAutoDelay();
+        if (delay == null) {
+        clearAutoTimer('Set a valid auto interval.');
+        return;
+        }
+        queueAutoTick(delay);
+    }, [getAutoDelay, clearAutoTimer, queueAutoTick]);
+    const syncAutoSchedule = useCallback(() => {
+        if (!autoRunningRef.current || !nextAutoAtRef.current) return;
+        const remaining = nextAutoAtRef.current - Date.now();
+        if (remaining <= 250) {
+        const sent = sendNotification();
+        if (!sent) {
+            clearAutoTimer();
+            return;
+        }
+        const nextDelay = getAutoDelay();
+        if (nextDelay == null) {
+            clearAutoTimer('Set a valid auto interval.');
+            return;
+        }
+        queueAutoTick(nextDelay);
+        return;
+        }
+        queueAutoTick(remaining);
+    }, [sendNotification, clearAutoTimer, getAutoDelay, queueAutoTick]);
+    useEffect(() => {
+        if (!autoRunning) return;
+        const handleWake = () => syncAutoSchedule();
+        document.addEventListener('visibilitychange', handleWake);
+        window.addEventListener('focus', handleWake);
+        return () => {
+        document.removeEventListener('visibilitychange', handleWake);
+        window.removeEventListener('focus', handleWake);
+        };
+    }, [autoRunning, syncAutoSchedule]);
+    const handleEnable = async () => {
+        if (typeof Notification === 'undefined') {
+        setPermission('unsupported');
+        setStatusMessage('Push notifications are not supported here.');
+        return;
+        }
+        const nextPermission = await Notification.requestPermission();
+        setPermission(nextPermission);
+        if (nextPermission === 'granted') setStatusMessage('Push notifications enabled.');
+        else if (nextPermission === 'denied') setStatusMessage('Push notifications were denied.');
+        else setStatusMessage('Push permission was dismissed.');
+    };
+    const handleCoinToggle = (coinId) => {
+        if (autoRunning) return;
+        setCoinInputs(prev => ({
+        ...prev,
+        [coinId]: { ...prev[coinId], selected:!prev[coinId].selected },
+        }));
+    };
+    const handleCoinValueChange = (coinId, field, value) => {
+        if (autoRunning) return;
+        setCoinInputs(prev => ({
+        ...prev,
+        [coinId]: { ...prev[coinId], [field]:value },
+        }));
+    };
+    const handleStartAuto = () => {
+        if (!ensurePermission()) return;
+        if (!ensureCoinSetup()) return;
+        const delay = getAutoDelay();
+        if (delay == null) {
+        setStatusMessage('Set a valid auto interval.');
+        return;
+        }
+        clearAutoTimer();
+        autoRunningRef.current = true;
+        setAutoRunning(true);
+        setStatusMessage('Auto notifications started. iPhone/Safari can pause web notifications in the background.');
+        const sent = sendNotification();
+        if (!sent) {
+            clearAutoTimer();
+            return;
+        }
+        if (autoRunningRef.current) scheduleNextAuto();
+    };
+    if (!shouldRender) return null;
+    const modalStyle = { position:'fixed',inset:0,zIndex:9999,background:'rgba(0,0,0,0.75)',display:'flex',alignItems:'flex-end',justifyContent:'center',transition:'opacity .3s cubic-bezier(.22,1,.36,1)',opacity:isVisible?1:0 };
+    const panelStyle = { background:'#1C1C1E',borderRadius:'24px 24px 0 0',width:'100%',maxWidth:430,maxHeight:'88vh',display:'flex',flexDirection:'column',overflow:'hidden',boxShadow:'0 -4px 60px rgba(0,0,0,0.7)',transform:isVisible?'translateY(0) scale(1)':'translateY(44px) scale(.97)',opacity:isVisible?1:.9,transition:'transform .36s cubic-bezier(.22,1,.36,1), opacity .3s cubic-bezier(.22,1,.36,1)',willChange:'transform, opacity' };
+    const revealStyle = (delay=0) => ({ opacity:isVisible ? 1 : 0, transform:isVisible ? 'translateY(0)' : 'translateY(18px)', transition:`opacity .4s cubic-bezier(.22,1,.36,1) ${delay}s, transform .4s cubic-bezier(.22,1,.36,1) ${delay}s`, willChange:'transform, opacity' });
+    const sectionStyle = { marginBottom:18 };
+    const sectionLabelStyle = { color:'#9B9B9B',fontSize:12,marginBottom:8,fontWeight:500,textTransform:'uppercase',letterSpacing:'0.5px' };
+    const fieldStyle = { width:'100%',padding:'12px 14px',borderRadius:12,background:'#2C2C2E',border:'1px solid #3A3A3C',color:'#fff',fontSize:15,outline:'none',boxSizing:'border-box',fontFamily:'inherit' };
+    const selectStyle = { ...fieldStyle, appearance:'none', WebkitAppearance:'none', MozAppearance:'none', paddingRight:30 };
+    const chipBtnStyle = (active, disabled=false) => ({ flex:1,padding:'10px 0',borderRadius:10,border:'none',cursor:disabled?'not-allowed':'pointer',background:active?'#AB9FF2':'#2C2C2E',color:active?'#000':'#9B9B9B',fontWeight:600,fontSize:14,fontFamily:'inherit',transition:'all .2s',opacity:disabled ? 0.55 : 1 });
+    const primaryBtnStyle = { width:'100%',padding:'16px',borderRadius:14,border:'none',background:'#AB9FF2',color:'#000',fontWeight:700,fontSize:16,cursor:'pointer',fontFamily:'inherit' };
+    const secondaryBtnStyle = (enabled) => ({ width:'100%',padding:'15px',borderRadius:14,border:'1px solid #3A3A3C',background:'#2C2C2E',color:enabled?'#fff':'#75757D',fontWeight:700,fontSize:15,cursor:enabled?'pointer':'not-allowed',fontFamily:'inherit' });
+    const permissionText = permission === 'granted' ? 'Enabled' : permission === 'denied' ? 'Denied' : permission === 'unsupported' ? 'Not supported' : 'Not enabled';
+    return (
+        <div style={modalStyle} onClick={e => { if (e.target === e.currentTarget) closeModal(); }}>
+        <div style={panelStyle} onClick={e => e.stopPropagation()}>
+            <div style={{ display:'flex',justifyContent:'center',padding:'12px 0 4px' }}>
+            <div style={{ width:36,height:4,borderRadius:2,background:'#3A3A3C' }}/>
+            </div>
+            <div style={{ display:'flex',alignItems:'center',justifyContent:'space-between',padding:'8px 20px 12px', ...revealStyle(0.02) }}>
+            <h2 style={{ color:'#fff',fontSize:18,fontWeight:700,margin:0 }}>Receive Notifications</h2>
+            <button onClick={closeModal} style={{ background:'#2C2C2E',border:'none',borderRadius:'50%',width:30,height:30,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer' }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+            </div>
+            <div style={{ flex:1,overflowY:'auto',padding:'0 20px 12px' }}>
+            <div style={{ ...sectionStyle, ...revealStyle(0.05) }}>
+                <div style={sectionLabelStyle}>Permission</div>
+                <div style={{ background:'#23232A',borderRadius:12,padding:'12px 14px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:12 }}>
+                <div>
+                    <div style={{ color:'#fff',fontWeight:700,fontSize:15 }}>Push</div>
+                    <div style={{ color:'#9B9B9B',fontSize:13,marginTop:4 }}>{permissionText}</div>
+                </div>
+                <button type="button" onClick={handleEnable} disabled={permission === 'granted' || permission === 'unsupported'} style={{ padding:'10px 16px',borderRadius:12,border:'none',background:permission === 'granted' ? '#2F6F4F' : permission === 'unsupported' ? '#3A3A3C' : '#AB9FF2',color:permission === 'granted' ? '#D9FFE8' : permission === 'unsupported' ? '#7C7C84' : '#000',fontWeight:700,fontSize:14,cursor:permission === 'granted' || permission === 'unsupported' ? 'not-allowed' : 'pointer',fontFamily:'inherit' }}>{permission === 'granted' ? 'Enabled' : 'Enable'}</button>
+                </div>
+            </div>
+            <div style={{ ...sectionStyle, ...revealStyle(0.09) }}>
+                <div style={sectionLabelStyle}>Coins & Amounts</div>
+                <div style={{ color:'#9B9B9B',fontSize:13,lineHeight:1.45,marginBottom:10 }}>From / To means the coin amount, e.g. 10–30 SOL</div>
+                <div style={{ display:'flex',flexDirection:'column',gap:10 }}>
+                {NOTIFICATION_COINS.map(coin => {
+                    const config = coinInputs[coin.id];
+                    return (
+                    <div key={coin.id} style={{ background:'#23232A',borderRadius:12,padding:'12px 14px' }}>
+                        <div style={{ display:'flex',alignItems:'center',gap:12 }}>
+                        <button type="button" onClick={() => handleCoinToggle(coin.id)} disabled={autoRunning} style={{ width:22,height:22,borderRadius:7,border:`1.5px solid ${config.selected ? coin.color : '#4A4A52'}`,background:config.selected ? coin.color : 'transparent',display:'flex',alignItems:'center',justifyContent:'center',padding:0,cursor:autoRunning?'not-allowed':'pointer',flexShrink:0 }}>
+                            {config.selected && <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#000" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round"><polyline points="3.5,8.5 6.5,11.5 12.5,5.5"/></svg>}
+                        </button>
+                        <div style={{ minWidth:58,color:'#fff',fontWeight:700,fontSize:14 }}>{coin.symbol}</div>
+                        <div style={{ color:'#6F6F78',fontSize:12 }}>{config.selected ? 'Random between your values' : 'Tap to enable'}</div>
+                        </div>
+                        {config.selected && (
+                        <div style={{ display:'grid',gridTemplateColumns:'1fr 18px 1fr',gap:8,marginTop:10,paddingLeft:34 }}>
+                            <input type="number" placeholder={`Min ${coin.symbol}`} value={config.from} disabled={autoRunning} onChange={e => handleCoinValueChange(coin.id, 'from', e.target.value)} style={fieldStyle} />
+                            <div style={{ color:'#7C7C84',alignSelf:'center',textAlign:'center',fontWeight:700 }}>-</div>
+                            <input type="number" placeholder={`Max ${coin.symbol}`} value={config.to} disabled={autoRunning} onChange={e => handleCoinValueChange(coin.id, 'to', e.target.value)} style={fieldStyle} />
+                        </div>
+                        )}
+                    </div>
+                    );
+                })}
+                </div>
+            </div>
+            <div style={{ ...sectionStyle, ...revealStyle(0.13) }}>
+                <div style={sectionLabelStyle}>Mode</div>
+                <div style={{ display:'flex',gap:8 }}>
+                <button type="button" onClick={() => !autoRunning && setMode('manual')} disabled={autoRunning} style={chipBtnStyle(mode === 'manual', autoRunning)}>Manual</button>
+                <button type="button" onClick={() => !autoRunning && setMode('auto')} disabled={autoRunning} style={chipBtnStyle(mode === 'auto', autoRunning)}>Auto</button>
+                </div>
+                {mode === 'manual' ? (
+                <p style={{ color:'#9B9B9B',fontSize:13,lineHeight:1.45,marginTop:12 }}>Send one notification with a random enabled coin and amount.</p>
+                ) : (
+                <div style={{ marginTop:12 }}>
+                    <div style={{ display:'flex',gap:8,marginBottom:12 }}>
+                    <button type="button" onClick={() => !autoRunning && setAutoType('random')} disabled={autoRunning} style={chipBtnStyle(autoType === 'random', autoRunning)}>Random</button>
+                    <button type="button" onClick={() => !autoRunning && setAutoType('fixed')} disabled={autoRunning} style={chipBtnStyle(autoType === 'fixed', autoRunning)}>Fixed</button>
+                    </div>
+                    {autoType === 'random' ? (
+                    <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr 88px',gap:8 }}>
+                        <input type="number" placeholder="Min" value={randomMin} disabled={autoRunning} onChange={e => setRandomMin(e.target.value)} style={fieldStyle} />
+                        <input type="number" placeholder="Max" value={randomMax} disabled={autoRunning} onChange={e => setRandomMax(e.target.value)} style={fieldStyle} />
+                        <select value={randomUnit} disabled={autoRunning} onChange={e => setRandomUnit(e.target.value)} style={selectStyle}>
+                        <option value="sec">sec</option>
+                        <option value="min">min</option>
+                        <option value="hr">hr</option>
+                        </select>
+                    </div>
+                    ) : (
+                    <div style={{ display:'grid',gridTemplateColumns:'60px 1fr 88px',gap:8 }}>
+                        <div style={{ ...fieldStyle,display:'flex',alignItems:'center',justifyContent:'center',color:'#9B9B9B' }}>Every</div>
+                        <input type="number" placeholder="1" value={fixedEvery} disabled={autoRunning} onChange={e => setFixedEvery(e.target.value)} style={fieldStyle} />
+                        <select value={fixedUnit} disabled={autoRunning} onChange={e => setFixedUnit(e.target.value)} style={selectStyle}>
+                        <option value="sec">sec</option>
+                        <option value="min">min</option>
+                        <option value="hr">hr</option>
+                        </select>
+                    </div>
+                    )}
+                    <p style={{ color:'#9B9B9B',fontSize:13,lineHeight:1.45,marginTop:12 }}>{autoRunning ? 'Stop auto to edit values or mode. Auto only works reliably while the web app/browser stays active.' : 'Auto sends repeating notifications with your chosen timing. On iPhone/Safari, background timers can pause when the app is not active.'}</p>
+                </div>
+                )}
+            </div>
+            {statusMessage && <p style={{ ...revealStyle(0.17), color:'#AB9FF2',fontSize:13,lineHeight:1.45,padding:'2px 2px 8px' }}>{statusMessage}</p>}
+            <div style={{ ...revealStyle(0.19), padding:'4px 0 18px',display:'grid',gap:8 }}>
+            {mode === 'manual' ? (
+                <button type="button" onClick={sendNotification} style={primaryBtnStyle}>Send Notification</button>
+            ) : (
+                <>
+                <button type="button" onClick={handleStartAuto} disabled={autoRunning} style={{ ...primaryBtnStyle, opacity:autoRunning ? 0.62 : 1, cursor:autoRunning?'not-allowed':'pointer' }}>Start Auto</button>
+                <button type="button" onClick={() => clearAutoTimer('Auto notifications stopped.')} disabled={!autoRunning} style={secondaryBtnStyle(autoRunning)}>Stop Auto</button>
+                </>
+            )}
+            </div>
+        </div>
+        </div>
+        </div>
+    );
+    }
+    function WalletHome() {
+    const initialAppState = useRef(readPersistedAppState()).current;
+    const [tokenAmounts, setTokenAmounts] = useState(initialAppState.tokenAmounts);
+    const [tokenOrder, setTokenOrder] = useState(initialAppState.tokenOrder);
+    const [cashBalance, setCashBalance] = useState(initialAppState.cashBalance);
+    const [walletDisplayName, setWalletDisplayName] = useState(initialAppState.walletDisplayName);
+    const [walletHandle, setWalletHandle] = useState(initialAppState.walletHandle); // Remove @ from state
+    const [walletEmoji, setWalletEmoji] = useState(initialAppState.walletEmoji);
+    const [settingsOpen, setSettingsOpen] = useState(false);
+    const [receiveModalOpen, setReceiveModalOpen] = useState(false);
+    const [currency, setCurrency] = useState(initialAppState.currency);
+    const [pullDistance, setPullDistance] = useState(0);
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    const [settingsTab, setSettingsTab] = useState('tokens');
+    const [uiReady, setUiReady] = useState(false);
+    const [dragTokenId, setDragTokenId] = useState(null);
+    const [dragPointerY, setDragPointerY] = useState(null);
+    const touchStartY = useRef(0);
+    const touchStartTime = useRef(0);
+    const pullEnabled = useRef(false);
+    const containerRef = useRef(null);
+    const tokenRefs = useRef({});
+    const longPressTimerRef = useRef(null);
+    const pressStateRef = useRef(null);
+    const dragMetaRef = useRef(null);
+    const suppressTokenClickRef = useRef(false);
+    const suppressClickTimeoutRef = useRef(null);
+    const headerHeight = 88;
+    const headerSpacerHeight = 17;
+    const headerSpinnerTop = 76;
+    const footerSafeArea = '0px';
+    const footerHeight = 95;
+    const footerSpacerHeight = footerHeight;
+    const footerContentHeight = 45;
+    const footerBottomOffset = 0;
+    const footerBackground = 'rgba(17,17,17,0.85)';
+    const footerBackdrop = 'blur(24px)';
+    const phoneHeight = 'calc(100% - 28px)';
+    const rate = CURRENCY_RATES[currency]||1;
+    const sym = CURRENCY_SYMBOLS[currency]||"$";
+    const totalBalance = Object.entries(tokenAmounts).reduce((s,[id,a])=>s+a*(TOKEN_PRICES[id]||0),0)*rate+cashBalance;
+    const tokenChanges = Object.fromEntries(TOKEN_DATA.map(token=>{const value=(tokenAmounts[token.id]||0)*(TOKEN_PRICES[token.id]||0)*rate;return [token.id,value*(TOKEN_CHANGE_RATES[token.id]||0)]}));
+    const totalChange = Object.values(tokenChanges).reduce((s,v)=>s+v,0);
+    const changePercent = totalBalance>0?(totalChange/totalBalance)*100:0;
+    const isPositive = totalChange>=0;
+    const orderedTokens = tokenOrder.map(tokenId => TOKEN_DATA_BY_ID[tokenId]).filter(Boolean);
+    const handleUpdateAmount = useCallback((tokenId,amount)=>{setTokenAmounts(p=>({...p,[tokenId]:amount}))},[]);
+    useEffect(() => {
+        writeStorage(APP_STORAGE_KEY, { tokenAmounts, tokenOrder, cashBalance, walletDisplayName, walletHandle, walletEmoji, currency });
+    }, [tokenAmounts, tokenOrder, cashBalance, walletDisplayName, walletHandle, walletEmoji, currency]);
+    useEffect(() => {
+        const frame = requestAnimationFrame(() => setUiReady(true));
+        return () => cancelAnimationFrame(frame);
+    }, []);
+    const clearLongPressTimer = useCallback(() => {
+        if (longPressTimerRef.current) {
+        clearTimeout(longPressTimerRef.current);
+        longPressTimerRef.current = null;
+        }
+    }, []);
+    const clearTokenPress = useCallback(() => {
+        clearLongPressTimer();
+        pressStateRef.current = null;
+    }, [clearLongPressTimer]);
+    const releaseSuppressedClick = useCallback(() => {
+        if (suppressClickTimeoutRef.current) clearTimeout(suppressClickTimeoutRef.current);
+        suppressClickTimeoutRef.current = setTimeout(() => {
+        suppressTokenClickRef.current = false;
+        suppressClickTimeoutRef.current = null;
+        }, 140);
+    }, []);
+    const getEventPoint = useCallback((event) => {
+        if (event.touches && event.touches[0]) return { clientX:event.touches[0].clientX, clientY:event.touches[0].clientY };
+        if (event.changedTouches && event.changedTouches[0]) return { clientX:event.changedTouches[0].clientX, clientY:event.changedTouches[0].clientY };
+        if (typeof event.clientX === 'number' && typeof event.clientY === 'number') return { clientX:event.clientX, clientY:event.clientY };
+        return null;
+    }, []);
+    const handleDragMovePoint = useCallback((point) => {
+        if (!dragMetaRef.current || !point) return;
+        const currentTokenId = dragMetaRef.current.tokenId;
+        setDragPointerY(point.clientY);
+        setTokenOrder(prev => {
+        const withoutDragged = prev.filter(id => id !== currentTokenId);
+        let insertAt = withoutDragged.length;
+        for (let index = 0; index < withoutDragged.length; index += 1) {
+            const tokenId = withoutDragged[index];
+            const node = tokenRefs.current[tokenId];
+            if (!node) continue;
+            const rect = node.getBoundingClientRect();
+            if (point.clientY < rect.top + (rect.height / 2)) {
+            insertAt = index;
+            break;
+            }
+        }
+        const nextOrder = [...withoutDragged];
+        nextOrder.splice(insertAt, 0, currentTokenId);
+        return nextOrder.every((id, index) => id === prev[index]) ? prev : nextOrder;
+        });
+    }, []);
+    const finishTokenDrag = useCallback(() => {
+        clearTokenPress();
+        if (!dragMetaRef.current) return;
+        dragMetaRef.current = null;
+        setDragTokenId(null);
+        setDragPointerY(null);
+        releaseSuppressedClick();
+    }, [clearTokenPress, releaseSuppressedClick]);
+    const handleTokenPressStart = useCallback((tokenId, event) => {
+        if (dragMetaRef.current) return;
+        const point = getEventPoint(event);
+        if (!point) return;
+        clearTokenPress();
+        pressStateRef.current = { tokenId, startX:point.clientX, startY:point.clientY, lastX:point.clientX, lastY:point.clientY };
+        longPressTimerRef.current = setTimeout(() => {
+        const currentPress = pressStateRef.current;
+        const node = tokenRefs.current[tokenId];
+        if (!currentPress || currentPress.tokenId !== tokenId || !node) return;
+        const rect = node.getBoundingClientRect();
+        dragMetaRef.current = {
+            tokenId,
+            left:rect.left,
+            width:rect.width,
+            height:rect.height,
+            offsetY:currentPress.lastY - rect.top,
+        };
+        suppressTokenClickRef.current = true;
+        pressStateRef.current = null;
+        clearLongPressTimer();
+        setDragTokenId(tokenId);
+        setDragPointerY(currentPress.lastY);
+        }, 280);
+    }, [clearLongPressTimer, clearTokenPress, getEventPoint]);
+    const handleTokenPressMove = useCallback((event) => {
+        const point = getEventPoint(event);
+        if (!point) return;
+        if (dragMetaRef.current) {
+        handleDragMovePoint(point);
+        return;
+        }
+        const currentPress = pressStateRef.current;
+        if (!currentPress) return;
+        currentPress.lastX = point.clientX;
+        currentPress.lastY = point.clientY;
+        if (Math.hypot(point.clientX - currentPress.startX, point.clientY - currentPress.startY) > 10) clearTokenPress();
+    }, [clearTokenPress, getEventPoint, handleDragMovePoint]);
+    const handleTokenPressEnd = useCallback(() => {
+        if (dragMetaRef.current) {
+        finishTokenDrag();
+        return;
+        }
+        clearTokenPress();
+    }, [clearTokenPress, finishTokenDrag]);
+    useEffect(() => {
+        if (!dragTokenId) return;
+        const handleTouchMove = event => {
+        const point = event.touches && event.touches[0] ? { clientX:event.touches[0].clientX, clientY:event.touches[0].clientY } : null;
+        if (!point) return;
+        if (event.cancelable) event.preventDefault();
+        handleDragMovePoint(point);
+        };
+        const handleMouseMove = event => handleDragMovePoint({ clientX:event.clientX, clientY:event.clientY });
+        const handleEnd = () => finishTokenDrag();
+        window.addEventListener('touchmove', handleTouchMove, { passive:false });
+        window.addEventListener('touchend', handleEnd);
+        window.addEventListener('touchcancel', handleEnd);
+        window.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('mouseup', handleEnd);
+        return () => {
+        window.removeEventListener('touchmove', handleTouchMove);
+        window.removeEventListener('touchend', handleEnd);
+        window.removeEventListener('touchcancel', handleEnd);
+        window.removeEventListener('mousemove', handleMouseMove);
+        window.removeEventListener('mouseup', handleEnd);
+        };
+    }, [dragTokenId, finishTokenDrag, handleDragMovePoint]);
+    useEffect(() => () => {
+        clearTokenPress();
+        if (suppressClickTimeoutRef.current) clearTimeout(suppressClickTimeoutRef.current);
+    }, [clearTokenPress]);
+    const handleTouchStart = e=>{
+        if (pressStateRef.current || dragMetaRef.current) {
+        touchStartY.current=0;
+        touchStartTime.current=0;
+        pullEnabled.current=false;
+        return;
+        }
+        if(isRefreshing){
+        touchStartY.current=0;
+        touchStartTime.current=0;
+        pullEnabled.current=false;
+        return;
+        }
+        const atTop=!!(containerRef.current&&containerRef.current.scrollTop<=1);
+        pullEnabled.current=atTop;
+        touchStartY.current=atTop?e.touches[0].clientY:0;
+        touchStartTime.current=atTop?Date.now():0;
+        if(!atTop)setPullDistance(0);
+    };
+    const handleTouchMove = e=>{
+        if (pressStateRef.current || dragMetaRef.current) return;
+        if(isRefreshing||!pullEnabled.current||!touchStartY.current||!containerRef.current||containerRef.current.scrollTop>1)return;
+        const d=e.touches[0].clientY-touchStartY.current;
+        if(d<=0){setPullDistance(0);return;}
+        const effectivePull=Math.max(0,d-22);
+        const nextPull=Math.min(effectivePull*.34,52);
+        setPullDistance(nextPull);
+    };
+    const handleTouchEnd = ()=>{
+        if (pressStateRef.current || dragMetaRef.current) {
+        touchStartY.current=0;
+        touchStartTime.current=0;
+        pullEnabled.current=false;
+        return;
+        }
+        if(isRefreshing){
+        touchStartY.current=0;
+        touchStartTime.current=0;
+        pullEnabled.current=false;
+        return;
+        }
+        const pullDuration=touchStartTime.current?Date.now()-touchStartTime.current:0;
+        if(pullEnabled.current&&pullDistance>34&&pullDuration>160){
+        setIsRefreshing(true);
+        setPullDistance(14);
+        setTimeout(()=>window.location.reload(),280);
+        } else setPullDistance(0);
+        touchStartY.current=0;
+        touchStartTime.current=0;
+        pullEnabled.current=false;
+    };
+    const fmt = v=>`${sym}${Math.abs(v).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+    const fmtS = v=>`${v>=0?"+":"-"}${fmt(Math.abs(v))}`;
+    const actionButtons = [
+        {icon:<svg width="22" height="22" viewBox="0 0 326 286" xmlns="http://www.w3.org/2000/svg" style={{transform:'scale(2.6)',transformOrigin:'center',overflow:'visible'}}><path d="m149.48 188.17c-7.91-18.96-7.74-18.8-27.1-26.64-21.93-8.89-26.93-15.31-23.02-29.53 2.93-10.67 3.07-10.74 55.4-28.22 51.22-17.12 51.18-17.11 60.5-8.45 9.3 8.65 9.06 10.51-7.79 61.21-16.18 48.68-17.25 51.01-25 54.43-2.59 1.15-6.75 2.03-9.53 2.03-3.35 0-6.35-0.78-9.33-2.42-5.84-3.23-6.68-4.56-14.13-22.41m12.1-7.68c3.14 8.02 6.55 15.46 7.57 16.54 1.05 1.12 3.16 1.97 4.88 1.97 2.37 0 3.45-0.71 4.92-3.25 1.03-1.79 5.95-15.62 10.92-30.75 4.98-15.12 9.54-28.85 10.14-30.5 8.24-22.63 8.72-26.67 3.55-30.05-2.2-1.44-2.97-1.35-10.71 1.35-4.59 1.59-12.85 4.39-18.35 6.21-15.37 5.1-25.93 8.63-38.5 12.89-6.32 2.14-13.41 4.41-15.75 5.04-5.85 1.57-9.11 5.93-7.55 10.08 1 2.65 2.76 3.63 16.13 8.98 18.5 7.4 15.77 7.75 27.22-3.5 10.7-10.51 13.21-11.53 16.88-6.87 3.58 4.56 2.76 6.44-17.06 27.29z" fill="rgba(165,155,232,1)"/></svg>,label:"Send"},
+        {icon:<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(165,155,232,1)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg>,label:"Swap"},
+        {icon:<i className="fa-solid fa-qrcode" style={{fontSize:27,color:'rgba(165,155,232,1)'}}></i>,label:"Receive"},
+        {icon:<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>,label:"Buy"},
+    ];
+    const navItems = [
+        {icon:<svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>,label:"Home",active:true},
+        {icon:<svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>,label:"Cards"},
+        {icon:<svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="17,1 21,5 17,9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7,23 3,19 7,15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>,label:"Swap"},
+        {icon:<svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>,label:"Messages"},
+        {icon:<svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>,label:"Search"},
+    ];
+    const openSettings = useCallback((tab) => {
+        setSettingsTab(tab);
+        setTimeout(() => setSettingsOpen(true), 0);
+    }, []);
+    const handleActionPress = useCallback((label) => {
+        if (label === 'Buy') openSettings('tokens');
+        if (label === 'Receive') setReceiveModalOpen(true);
+    }, [openSettings]);
+    const handleTokenCardClick = useCallback((event) => {
+        if (suppressTokenClickRef.current || dragMetaRef.current) {
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+        }
+        openSettings('tokens');
+    }, [openSettings]);
+    const renderTokenCardContent = useCallback((token) => {
+        const amount=tokenAmounts[token.id]||0;
+        const value=amount*(TOKEN_PRICES[token.id]||0)*rate;
+        const change=tokenChanges[token.id]||0;
+        const tp=change>=0;
+        return (
+        <>
+            <TokenIcon token={token.icon} size={40}/>
+            <div style={{flex:1,minWidth:0,display:'flex',flexDirection:'column',gap:2}}>
+            <div style={{display:'flex',alignItems:'center',gap:6}}>
+                <span style={{fontWeight:600}}>{token.name}</span>
+                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" style={{display:'block'}}>
+                <g fill="#AB9FF2">
+                    <circle cx="10" cy="10" r="5.8"/>
+                    <circle cx="10" cy="4.4" r="2.15"/>
+                    <circle cx="13.95" cy="6.05" r="2.15"/>
+                    <circle cx="15.6" cy="10" r="2.15"/>
+                    <circle cx="13.95" cy="13.95" r="2.15"/>
+                    <circle cx="10" cy="15.6" r="2.15"/>
+                    <circle cx="6.05" cy="13.95" r="2.15"/>
+                    <circle cx="4.4" cy="10" r="2.15"/>
+                    <circle cx="6.05" cy="6.05" r="2.15"/>
+                </g>
+                <path d="M6.2 10.2L8.4 12.4L13.8 7.2" stroke="#000000" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+            </div>
+            <span style={{fontSize:14,color:'var(--text-secondary)'}}>{amount>0?`${formatTokenAmount(amount)} ${token.symbol}`:`0 ${token.symbol}`}</span>
+            </div>
+            <div style={{textAlign:'right',minWidth:80,display:'flex',flexDirection:'column',gap:2}}>
+            <div style={{fontWeight:500,fontSize:16}}>{fmt(value)}</div>
+            {value>0?<div style={{fontSize:14,color:tp?'var(--green)':'var(--red)'}}>{fmtS(change)}</div>:<div style={{fontSize:14,color:'var(--text-secondary)'}}>{sym}0.00</div>}
+            </div>
+        </>
+        );
+    }, [fmt, fmtS, rate, sym, tokenAmounts, tokenChanges]);
+    const revealStyle = useCallback((delay=0) => ({
+        opacity: uiReady ? 1 : 0,
+        transform: uiReady ? 'translateY(0)' : 'translateY(12px)',
+        transition: `opacity .34s cubic-bezier(.22,1,.36,1) ${delay}s, transform .34s cubic-bezier(.22,1,.36,1) ${delay}s`,
+        willChange: 'opacity, transform',
+    }), [uiReady]);
+    const cs = {
+        wrap:{display:'flex',justifyContent:'center',height:'100%',background:'var(--bg)',overflow:'hidden'},
+        phone:{width:'100%',maxWidth:430,height:phoneHeight,minHeight:0,background:'var(--bg)',display:'flex',flexDirection:'column',position:'relative',marginTop:'28px',overflow:'hidden'},
+        scroll:{flex:1,minHeight:0,overflowY:'auto',overflowX:'hidden',WebkitOverflowScrolling:'touch',overscrollBehaviorY:'contain'},
+        header:{padding:'26px 20px 8px',position:'fixed',top:-18,left:'50%',transform:'translateX(-50%) translateZ(0)',width:'100%',maxWidth:430,boxSizing:'border-box',zIndex:30,height:headerHeight,background:'#111111',backfaceVisibility:'hidden',willChange:'transform',display:'flex',alignItems:'flex-end',justifyContent:'space-between'},
+        avatar:{width:40,height:40,borderRadius:'50%',background:'var(--card)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:20},
+        balanceSection:{padding:'16px 20px 8px',marginTop:18,cursor:'pointer'},
+        balanceText:{fontSize:42,fontWeight:600,letterSpacing:'-0.02em',lineHeight:1.1},
+        actionBar:{padding:'0 20px',paddingTop:20,paddingBottom:20},
+        actionBtnRow:{display:'flex',gap:8},
+        actionBtn:{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'flex-start',gap:6,padding:'13px 0',background:'var(--card)',borderRadius:20,border:'none',cursor:'pointer',color:'#AB9FF2',fontFamily:'Inter',minWidth:0},
+        cashCard:{margin:'0 20px 16px',background:'var(--card)',borderRadius:16,padding:'15px 20px',display:'flex',alignItems:'center',justifyContent:'space-between'},
+        tokenSection:{padding:'0 20px 16px'},
+        tokenCard:(big)=>({background:'var(--card)',borderRadius:21,display:'flex',alignItems:'center',gap:12,cursor:'pointer',padding:big?'18px 16px':'12px 16px',border:'none',width:'100%',color:'var(--text)',fontFamily:'Inter'}),
+        bottomNav:{position:'fixed',bottom:footerBottomOffset,left:0,right:0,maxWidth:430,margin:'0 auto',zIndex:20,height:footerHeight,boxSizing:'border-box',overflow:'hidden',background:footerBackground,backdropFilter:footerBackdrop,WebkitBackdropFilter:footerBackdrop,paddingBottom:footerSafeArea},
+        navBtn:(active)=>({display:'flex',flexDirection:'column',alignItems:'center',gap:8,background:'none',border:'none',cursor:'pointer',color:active?'#AB9FF2':'var(--text-secondary)',fontFamily:'Inter'}),
+    };
+    return (
+        <div style={cs.wrap}>
+        <div style={cs.phone}>
+            {/* Header */}
+            <div style={cs.header}>
+                <div style={{display:'flex',alignItems:'center',gap:12,cursor:'pointer'}} onClick={()=>openSettings('profile')}>
+                <div style={cs.avatar}>{walletEmoji}</div>
+                <div>
+                    <div style={{fontSize:14,color:'#B4B4B4',fontWeight:600}}>{`@${walletHandle.replace(/^@+/,"")}`}</div>
+                    <div style={{fontSize:25,fontWeight:600,marginTop:2}}>{walletDisplayName}</div>
+                </div>
+                </div>
+                <div style={{display:'flex',alignItems:'center',gap:22,marginRight:6,marginBottom:12}}>
+                <button style={{background:'none',border:'none',cursor:'pointer',color:'#fff',display:'flex'}}>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+                </button>
+                <button style={{background:'none',border:'none',cursor:'pointer',color:'#fff',display:'flex'}}>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                </button>
+                </div>
+            </div>
+            <div ref={containerRef} style={cs.scroll}>
+            <div style={{height:headerSpacerHeight}} />
+            {/* Balance */}
+            <div style={{...cs.balanceSection,...revealStyle(0.02)}} className="tap-feedback tap-feedback-soft" onClick={()=>openSettings('cash')}>
+                <div style={cs.balanceText}>{fmt(totalBalance)}</div>
+                <div style={{display:'flex',alignItems:'center',gap:8,marginTop:9}}>
+                <span style={{fontSize:14,fontWeight:500,color:isPositive?'var(--green)':'var(--red)'}}>{fmtS(totalChange)}</span>
+                <span style={{
+                    fontSize:14,
+                    fontWeight:600,
+                    padding:'2px 7px',
+                    borderRadius:6,
+                    background:isPositive?'#00A668':'#F83B17',
+                    color:'#091011',
+                }}>{isPositive?"+":""}{changePercent.toFixed(2)}%</span>
+                </div>
+            </div>
+            {/* Actions */}
+            <div style={{...cs.actionBar,...revealStyle(0.06)}}>
+                <div style={cs.actionBtnRow}>
+                {actionButtons.map(btn=>(
+                    <button key={btn.label} className="tap-feedback" onClick={()=>handleActionPress(btn.label)} style={cs.actionBtn}>
+                    <span style={{height:30,display:'flex',alignItems:'center',justifyContent:'center'}}>{btn.icon}</span>
+                    <span style={{height:16,display:'flex',alignItems:'flex-start',justifyContent:'center',fontSize:13,lineHeight:'16px',fontWeight:600,color:'#B3B3B3'}}>{btn.label}</span>
+                    </button>
+                ))}
+                </div>
+            </div>
+            {/* Cash */}
+            <div style={{...cs.cashCard, ...revealStyle(0.1), marginTop: 3}}>
+                <div>
+                <div style={{fontSize:14,color:'#BABABA',fontWeight:600}}>Cash Balance</div>
+                <div style={{fontSize:20,fontWeight:600,marginTop:2}}>{fmt(cashBalance)}</div>
+                </div>
+<button className="tap-feedback" onClick={()=>openSettings('cash')} style={{padding:'10px 13px',background:'#AB9FF2',color:'#000000',fontWeight:600,fontSize:15,borderRadius:12,border:'none',cursor:'pointer',fontFamily:'Inter'}}>Add Cash</button>
+            </div>
+            {/* Tokens */}
+            <div style={{...cs.tokenSection, ...revealStyle(0.14), paddingBottom:32, marginTop:32}}>
+                <div style={{display:'flex',alignItems:'center',gap:1,marginBottom:12,cursor:'pointer',position:'relative',top:1}}>
+                <h2 style={{fontSize:22,fontWeight:600,margin:0}}>Token</h2>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{position:'relative',top:1}}><polyline points="9,18 15,12 9,6"/></svg>
+                </div>
+                <div style={{display:'flex',flexDirection:'column',gap:10}}>
+                {orderedTokens.map(token=>{
+                    const isDragging = dragTokenId === token.id;
+                    return (
+                    <div key={token.id} ref={node => {
+                        if (node) tokenRefs.current[token.id] = node;
+                        else delete tokenRefs.current[token.id];
+                    }} className={isDragging ? '' : 'tap-feedback tap-feedback-soft'} onClick={handleTokenCardClick} onMouseDown={e => handleTokenPressStart(token.id, e)} onMouseMove={handleTokenPressMove} onMouseUp={handleTokenPressEnd} onMouseLeave={handleTokenPressEnd} onTouchStart={e => handleTokenPressStart(token.id, e)} onTouchMove={handleTokenPressMove} onTouchEnd={handleTokenPressEnd} onTouchCancel={handleTokenPressEnd} style={{
+                        background:'#222222',
+                        borderRadius:23,
+                        display:'flex',
+                        alignItems:'center',
+                        gap:16,
+                        cursor:isDragging ? 'grabbing' : 'pointer',
+                        padding:'19px 18px',
+                        border:'none',
+                        width:'100%',
+                        minHeight:72,
+                        color:'var(--text)',
+                        fontFamily:'Inter',
+                        boxSizing:'border-box',
+                        opacity:isDragging ? 0.14 : 1,
+                        transform:isDragging ? 'scale(.988)' : 'none',
+                        transition:'opacity .18s ease, transform .18s ease',
+                    }}>
+                        {renderTokenCardContent(token)}
+                    </div>
+                    );
+                })}
+                </div>
+            </div>
+            <div style={{height:footerSpacerHeight}}/>
+            </div>
+            {dragTokenId && dragMetaRef.current && TOKEN_DATA_BY_ID[dragTokenId] && (
+            <div style={{
+                position:'fixed',
+                left:dragMetaRef.current.left,
+                top:(dragPointerY ?? 0) - dragMetaRef.current.offsetY,
+                width:dragMetaRef.current.width,
+                minHeight:dragMetaRef.current.height,
+                zIndex:45,
+                pointerEvents:'none',
+                background:'#2A2A2A',
+                borderRadius:23,
+                display:'flex',
+                alignItems:'center',
+                gap:16,
+                padding:'19px 18px',
+                color:'var(--text)',
+                fontFamily:'Inter',
+                boxSizing:'border-box',
+                boxShadow:'0 18px 44px rgba(0,0,0,0.42)',
+                transform:'scale(1.015)',
+                opacity:0.98,
+            }}>
+                {renderTokenCardContent(TOKEN_DATA_BY_ID[dragTokenId])}
+            </div>
+            )}
+            {/* Bottom Nav */}
+            <div style={cs.bottomNav}>
+            <div style={{position:'absolute',top:0,left:0,right:0,height:footerContentHeight,display:'flex',alignItems:'center',justifyContent:'center',gap:46,padding:'0px 8px 0px',transform:'translateY(9px)',width:'100%',boxSizing:'border-box'}}>
+                {navItems.map(n=>(
+                <button key={n.label} style={cs.navBtn(n.active)}>
+                    {n.icon}
+                </button>
+                ))}
+            </div>
+            </div>
+            <ReceiveNotificationModal open={receiveModalOpen} onClose={()=>setReceiveModalOpen(false)}/>
+            <SettingsModal open={settingsOpen} onClose={()=>setSettingsOpen(false)} tokenAmounts={tokenAmounts} onUpdateAmount={handleUpdateAmount} cashBalance={cashBalance} onUpdateCash={setCashBalance} walletDisplayName={walletDisplayName} onUpdateDisplayName={setWalletDisplayName} walletHandle={walletHandle} onUpdateHandle={setWalletHandle} walletEmoji={walletEmoji} onUpdateEmoji={setWalletEmoji} currency={currency} onUpdateCurrency={setCurrency} initialTab={settingsTab}/>
+        </div>
+        </div>
+    );
+    }
+    ReactDOM.createRoot(document.getElementById('root')).render(<WalletHome/>);
+    </script>
+    </body> 
+    </html>

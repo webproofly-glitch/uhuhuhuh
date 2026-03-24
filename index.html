@@ -1,0 +1,1517 @@
+t<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coinlarp</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,100..900;1,100..900&family=Roboto+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="icon" type="image/svg+xml" href="https://media.discordapp.net/attachments/1459569912174346292/1481676099619393556/Frame_3315_3.png?ex=69b42de6&is=69b2dc66&hm=67490f52a629e9a0a1e5994a1ab77e8401c5af83aafdf18a6c0ab637c182e300&=&format=webp&quality=lossless&width=1828&height=1520">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, h1, h2, h3, p, a, span, button, li, ul, nav, header, section, div {
+            font-family: 'Urbanist', sans-serif;
+        }
+
+        html {
+            overflow-x: hidden;
+        }
+
+        body {
+            background-color: #0a0a0a;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 40px;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        .header {
+            background-color: rgba(16, 16, 16, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            padding: 14px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-radius: 12px;
+            border: 1px solid #222222;
+            position: fixed;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            width: calc(100% - 48px);
+            max-width: 960px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .logo-img {
+            width: 37px;
+            height: 37px;
+            border-radius: 8px;
+            object-fit: contain;
+        }
+
+        .logo-text {
+            color: #ffffff;
+            font-size: 19px;
+            font-weight: 700;
+        }
+
+        .nav {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 20px;
+            flex: 1;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 16px;
+            list-style: none;
+        }
+
+        .nav-link {
+            color: #a0a0a0;
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 500;
+            transition: color 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .nav-link:hover {
+            color: #ffffff;
+        }
+
+        .cta-btn {
+            background-color: #ffffff;
+            color: #101010;
+            text-decoration: none;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .cta-btn:hover {
+            background-color: #ffffff;
+        }
+
+        /* Mobile menu button */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: #ffffff;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        .mobile-menu-btn svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        /* Mobile styles */
+        @media (max-width: 768px) {
+            .header {
+                width: calc(100% - 32px);
+                left: 50%;
+                transform: translateX(-50%);
+                padding: 10px 14px;
+                border-radius: 12px;
+                max-width: 100%;
+            }
+
+            .logo-img {
+                width: 32px;
+                height: 32px;
+            }
+
+            .logo-text {
+                font-size: 16px;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .cta-btn {
+                display: none;
+            }
+        }
+
+        /* Mobile dropdown menu */
+        .mobile-nav {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background-color: #0a0a0a;
+            z-index: 998;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .mobile-nav.open {
+            display: flex;
+        }
+
+        .mobile-nav-close {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            background: none;
+            border: none;
+            color: #a0a0a0;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .mobile-nav-close:hover {
+            color: #ffffff;
+        }
+
+        .mobile-nav a {
+            color: #a0a0a0;
+            text-decoration: none;
+            font-size: 22px;
+            font-weight: 600;
+            padding: 14px 32px;
+            width: 80%;
+            text-align: center;
+            border-radius: 12px;
+            transition: color 0.2s ease, background 0.2s ease;
+        }
+
+        .mobile-nav a:hover {
+            color: #ffffff;
+            background-color: #1a1a1a;
+        }
+
+        /* Hero glow blobs */
+        .hero {
+            position: relative;
+            width: 100%;
+            max-width: 960px;
+            padding: 0 24px;
+        }
+
+        .hero-glow-left,
+        .hero-glow-right {
+            position: absolute;
+            top: 0;
+            width: 0px;
+            height: 0px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+            filter: blur(100px);
+        }
+
+        .hero-glow-left {
+            left: -150px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.30) 0%, transparent 80%);
+        }
+
+        .hero-glow-right {
+            right: -150px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.30) 0%, transparent 80%);
+        }
+
+        /* Hero */
+        .hero {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding-top: 180px;
+            gap: 24px;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background-color: transparent;
+            border: 2px solid #ffffff;
+            border-radius: 999px;
+            padding: 6px 16px;
+            font-size: 13px;
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .hero-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #ffffff;
+            display: inline-block;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.8); }
+        }
+
+        .hero-btns {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .btn-primary, .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            padding: 12px 22px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            overflow: hidden;
+            position: relative;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn-primary {
+            background-color: #ffffff;
+            color: #101010;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 4px 20px rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-secondary {
+            background-color: #1e1e1e;
+            color: #a0a0a0;
+            border: 1px solid #2a2a2a;
+            font-weight: 500;
+            transition: transform 0.2s ease, color 0.4s ease;
+        }
+
+        .btn-secondary:hover {
+            color: #ffffff;
+        }
+
+        /* Text scroll hover effect */
+        .btn-text-wrap {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+
+        .btn-text {
+            display: inline-block;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-text-clone {
+            position: absolute;
+            top: 0;
+            left: 0;
+            white-space: nowrap;
+            transform: translateY(-110%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-primary:hover .btn-text-wrap .btn-text,
+        .btn-secondary:hover .btn-text-wrap .btn-text {
+            transform: translateY(110%);
+        }
+
+        .btn-primary:hover .btn-text-wrap .btn-text-clone,
+        .btn-secondary:hover .btn-text-wrap .btn-text-clone {
+            transform: translateY(0);
+        }
+
+        .hero-mockup {
+            margin-top: 24px;
+            width: 100%;
+            max-width: 340px;
+            position: relative;
+        }
+
+        .mockup-img {
+            width: 100%;
+            height: auto;
+            display: block;
+            filter: drop-shadow(0 40px 80px rgba(255, 255, 255, 0.15));
+            animation: float 4s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-14px); }
+        }
+
+        .trust-bar {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-top: 8px;
+        }
+
+        .trust-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            color: #666666;
+            font-weight: 600;
+        }
+
+        .trust-divider {
+            color: #ffffff;
+            font-size: 16px;
+        }
+
+        .hero-sub {
+            font-size: 19px;
+            font-weight: 500;
+            color: #bebebe;
+            max-width: 480px;
+            line-height: 1.6;
+        }
+
+        .hero-title {
+            font-size: clamp(40px, 6.5vw, 80px);
+            font-weight: 600;
+            color: #ffffff;
+            line-height: 1.05;
+            letter-spacing: -0.02em;
+        }
+
+        .hero-gradient {
+            background: linear-gradient(90deg, #ffffff 0%, #ffffff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Features Section */
+        .features-section {
+            width: 100%;
+            max-width: 1060px;
+            padding: 100px 24px 60px;
+            text-align: center;
+            margin: 0 auto;
+        }
+
+        .section-badge {
+            display: inline-block;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            color: #ffffff;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: clamp(24px, 3.5vw, 40px);
+            font-weight: 600;
+            color: #ffffff;
+            line-height: 1.15;
+            letter-spacing: -0.02em;
+            margin-bottom: 56px;
+            font-family: 'Urbanist', sans-serif;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            align-items: stretch;
+            width: 100%;
+        }
+
+        .feature-card {
+            background-color: transparent;
+            border: 1px solid #1e1e1e;
+            border-radius: 16px;
+            padding: 40px 36px;
+            text-align: center;
+            transition: border-color 0.2s ease, transform 0.2s ease;
+            height: 100%;
+            box-sizing: border-box;
+        }
+
+        .feature-card:hover {
+            border-color: #ffffff;
+            transform: translateY(-4px);
+        }
+
+        .feature-icon {
+            font-size: 24px;
+            color: #ffffff;
+            margin-bottom: 16px;
+            display: block;
+        }
+
+        .feature-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 8px;
+        }
+
+        .feature-desc {
+            font-size: 14px;
+            color: #6a6a6a;
+            line-height: 1.7;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .features-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .hero {
+                padding-top: 120px;
+                padding-left: 16px;
+                padding-right: 16px;
+                gap: 18px;
+            }
+
+            .hero-title {
+                font-size: clamp(32px, 9vw, 60px);
+            }
+
+            .hero-sub {
+                font-size: 16px;
+                max-width: 90%;
+            }
+
+            .hero-btns {
+                flex-direction: column;
+                align-items: center;
+                width: 100%;
+                max-width: 300px;
+            }
+
+            .btn-primary, .btn-secondary {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .trust-bar {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 10px 16px;
+            }
+
+            .hero-mockup {
+                max-width: 260px;
+            }
+
+            .features-section {
+                padding: 60px 16px 40px;
+            }
+
+            .feature-card {
+                padding: 36px 24px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero {
+                padding-top: 100px;
+            }
+
+            .hero-btns {
+                max-width: 100%;
+            }
+
+            .trust-bar {
+                gap: 8px 12px;
+            }
+
+            .trust-divider {
+                display: none;
+            }
+
+            .hero-mockup {
+                max-width: 220px;
+            }
+
+            .cta-btn {
+                padding: 8px 12px;
+            }
+
+            .how-it-works-section {
+                padding: 60px 16px 40px;
+            }
+
+            .steps-container {
+                flex-direction: column;
+                align-items: center;
+                gap: 32px;
+            }
+
+            .step-connector {
+                display: none;
+            }
+
+            .step-item {
+                padding: 0;
+            }
+        }
+
+        .how-it-works-section {
+            width: 100%;
+            max-width: 600px;
+            padding: 80px 24px 60px;
+            text-align: center;
+            margin: 0 auto;
+        }
+
+        .steps-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            margin-top: 40px;
+        }
+
+        .step-item {
+            display: flex;
+            align-items: flex-start;
+            text-align: left;
+            gap: 16px;
+            position: relative;
+            padding: 12px 0;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .step-number {
+            width: 36px;
+            height: 36px;
+            min-width: 36px;
+            border-radius: 50%;
+            background: #1a1a1a;
+            border: 2px solid #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 700;
+            color: #ffffff;
+            position: relative;
+            z-index: 2;
+        }
+
+        .step-item:not(:last-child) .step-number::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: -30px;
+            width: 2px;
+            height: 30px;
+            background: linear-gradient(to bottom, #ffffff 0%, transparent 100%);
+            opacity: 0.4;
+        }
+
+        .step-content {
+            padding-top: 6px;
+        }
+
+        .step-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 6px;
+        }
+
+        .step-desc {
+            font-size: 13px;
+            color: #888888;
+            line-height: 1.5;
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            .steps-container {
+                max-width: 100%;
+                padding: 0 20px;
+            }
+
+            .pricing-section {
+                padding: 80px 16px 40px;
+            }
+        }
+
+        /* Pricing Section */
+        .pricing-section {
+            width: 100%;
+            max-width: 1060px;
+            padding: 100px 24px 60px;
+            text-align: center;
+            margin: 0 auto;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            align-items: stretch;
+            width: 100%;
+            margin-top: 48px;
+        }
+
+        .pricing-card {
+            background-color: transparent;
+            border: 1px solid #1e1e1e;
+            border-radius: 16px;
+            padding: 36px 28px;
+            text-align: center;
+            transition: border-color 0.2s ease, transform 0.2s ease;
+            height: 100%;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .pricing-card:hover {
+        }
+
+        .pricing-card:not(.popular):hover {
+        }
+
+        .pricing-card.popular {
+            border-color: #ffffff;
+        }
+
+        .pricing-cherry {
+            font-size: 24px;
+            color: #ffffff;
+            margin-bottom: 8px;
+            opacity: 0.8;
+        }
+
+        .popular .pricing-cherry {
+            opacity: 1;
+        }
+
+        .popular-badge {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #ffffff;
+            color: #101010;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+
+        .pricing-name {
+            font-size: 20px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 8px;
+        }
+
+        .pricing-duration {
+            font-size: 14px;
+            color: #6a6a6a;
+            font-weight: 500;
+            margin-bottom: 20px;
+        }
+
+        .pricing-price {
+            font-size: 36px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 24px;
+        }
+
+        .pricing-price span {
+            font-size: 16px;
+            font-weight: 500;
+            color: #6a6a6a;
+        }
+
+        .pricing-features {
+            text-align: left;
+            margin-bottom: 28px;
+            flex: 1;
+        }
+
+        .pricing-feature {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            color: #b0b0b0;
+            font-weight: 500;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #1e1e1e;
+        }
+
+        .pricing-feature:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .pricing-feature i {
+            color: #ffffff;
+            font-size: 12px;
+        }
+
+        .pricing-feature.inactive {
+            color: #4a4a4a;
+        }
+
+        .pricing-feature.inactive i {
+            color: #4a4a4a;
+        }
+
+        .pricing-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 14px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            font-family: 'Roboto Mono', monospace;
+        }
+
+        .pricing-btn-primary {
+            background-color: #ffffff;
+            color: #101010;
+        }
+
+        .pricing-btn-primary:hover {
+            background-color: #ffffff;
+        }
+
+        .pricing-btn-secondary {
+            background-color: transparent;
+            border: 1px solid #2a2a2a;
+            color: #a0a0a0;
+        }
+
+        .pricing-btn-secondary:hover {
+            border-color: #ffffff;
+            color: #ffffff;
+        }
+
+        @media (max-width: 900px) {
+            .pricing-grid {
+                grid-template-columns: 1fr;
+                max-width: 400px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .pricing-card.popular {
+                order: -1;
+            }
+        }
+
+        /* FAQ Section */
+        .faq-section {
+            width: 100%;
+            max-width: 800px;
+            padding: 80px 24px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .faq-list {
+            margin-top: 40px;
+            text-align: left;
+        }
+
+        .faq-item {
+            background: transparent;
+            border: 1px solid #252525;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            overflow: hidden;
+            transition: border-color 0.2s ease;
+        }
+
+        .faq-item:hover {
+            border-color: #333333;
+        }
+
+        .faq-question {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            cursor: pointer;
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .faq-question i {
+            color: #666666;
+            font-size: 12px;
+            transition: transform 0.3s ease, color 0.3s ease;
+        }
+
+        .faq-item.open .faq-question i {
+            transform: rotate(180deg);
+            color: #ffffff;
+        }
+
+        .faq-answer {
+            display: grid;
+            grid-template-rows: 0fr;
+            transition: grid-template-rows 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .faq-answer-inner {
+            overflow: hidden;
+            color: #888888;
+            font-size: 14px;
+            line-height: 1.7;
+            font-weight: 400;
+            padding: 0 20px 0;
+            opacity: 0;
+            transform: translateY(-8px);
+            transition: opacity 0.3s ease 0.15s, transform 0.3s ease 0.15s, padding 0.3s ease;
+        }
+
+        .faq-item.open .faq-answer {
+            grid-template-rows: 1fr;
+        }
+
+        .faq-item.open .faq-answer-inner {
+            opacity: 1;
+            transform: translateY(0);
+            padding-bottom: 20px;
+        }
+
+        /* Telegram CTA */
+        .telegram-cta {
+            margin-top: 60px;
+            padding: 48px 32px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            text-align: center;
+        }
+
+        .telegram-cta h3 {
+            color: #ffffff;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            letter-spacing: -0.02em;
+        }
+
+        .telegram-cta p {
+            color: #888888;
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 24px;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .telegram-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(135deg, #ffffff 0%, #ffffff 100%);
+            color: #101010;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .telegram-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Footer */
+        .footer {
+            width: 100%;
+            max-width: 1060px;
+            padding: 60px 24px 40px;
+            margin: 0 auto;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 1fr 1fr;
+            gap: 24px;
+            padding-bottom: 40px;
+            border-bottom: 1px solid #222222;
+        }
+
+        .footer-brand {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .footer-logo-img {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            object-fit: contain;
+        }
+
+        .footer-logo-text {
+            color: #ffffff;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .footer-tagline {
+            color: #666666;
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 1.5;
+        }
+
+        .footer-email {
+            color: #888888;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+        }
+
+        .footer-email:hover {
+            color: #ffffff;
+        }
+
+        .footer-socials {
+            display: flex;
+            gap: 16px;
+            margin-top: 8px;
+        }
+
+        .footer-socials a {
+            color: #666666;
+            font-size: 18px;
+            transition: color 0.2s ease;
+        }
+
+        .footer-socials a:hover {
+            color: #ffffff;
+        }
+
+        .footer-column {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .footer-column h4 {
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+
+        .footer-column a {
+            color: #666666;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .footer-column a:hover {
+            color: #ffffff;
+        }
+
+        .footer-bottom {
+            padding-top: 24px;
+            text-align: center;
+            color: #444444;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            .footer-content {
+                grid-template-columns: 1fr;
+                gap: 32px;
+                text-align: center;
+            }
+
+            .footer-brand {
+                align-items: center;
+            }
+
+            .footer-socials {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <a href="#" class="logo">
+            <img src="/logo.png" alt="Coinlarp" class="logo-img">
+            <span class="logo-text">Coin<span style="color:#ffffff">larp</span></span>
+        </a>
+
+        <nav class="nav">
+            <ul class="nav-links">
+                <li><a href="#features" class="nav-link">Features</a></li>
+                <li><a href="#pricing" class="nav-link">Pricing</a></li>
+                <li><a href="#faq" class="nav-link">FAQ</a></li>
+                <li><a href="https://t.me/coinlarp" target="_blank" class="nav-link">Telegram</a></li>
+            </ul>
+
+            <a href="dashboard.html" class="cta-btn">Dashboard</a>
+
+            <button class="mobile-menu-btn" aria-label="Menu">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+            </button>
+        </nav>
+    </header>
+
+    <div class="hero-glow-left"></div>
+    <div class="hero-glow-right"></div>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-badge">
+            <span class="hero-dot"></span>
+            Now available on iOS
+        </div>
+        <h1 class="hero-title">
+            Believe it<br><span class="hero-gradient">to become it.</span>
+        </h1>
+        <p class="hero-sub">Customize your dashboard with zero financial risk. No real assets involved.</p>
+
+        <div class="hero-btns">
+            <a href="#pricing" class="btn-primary">
+                <span class="btn-text-wrap">
+                    <span class="btn-text">Get Coinlarp</span>
+                    <span class="btn-text-clone">Get Coinlarp</span>
+                </span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+            </a>
+            <a href="https://t.me/coinlarp" target="_blank" class="btn-secondary">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248-1.97 9.289c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L6.9 13.493l-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.916.093z"/></svg>
+                <span class="btn-text-wrap">
+                    <span class="btn-text">Join Telegram</span>
+                    <span class="btn-text-clone">Join Telegram</span>
+                </span>
+            </a>
+        </div>
+
+        <div class="trust-bar">
+            <div class="trust-item">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#ffffff" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                Secured
+            </div>
+            <span class="trust-divider">|</span>
+            <div class="trust-item">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#ffffff" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                No KYC
+            </div>
+            <span class="trust-divider">|</span>
+            <div class="trust-item">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#ffffff" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                24/7 Support
+            </div>
+            <span class="trust-divider">|</span>
+            <div class="trust-item">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#ffffff" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                Zero Risk
+            </div>
+        </div>
+
+        <div class="hero-mockup">
+            <img src="/coinlarp.png" alt="Coinlarp App" class="mockup-img">
+        </div>
+    </section>
+
+    <nav class="mobile-nav" id="mobileNav">
+        <button class="mobile-nav-close" id="mobileNavClose" aria-label="Close menu">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="28" height="28">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
+        <a href="#features">Features</a>
+        <a href="#pricing">Pricing</a>
+        <a href="https://t.me/coinlarp">Telegram</a>
+        <a href="#faq">FAQ</a>
+        <a href="dashboard.html" style="color:#101010; background-color:#ffffff; border-radius:12px; text-align:center; margin-top:8px;">Dashboard</a>
+    </nav>
+
+    <!-- Features Section -->
+    <section id="features" class="features-section">
+        <div class="section-badge">FEATURES</div>
+        <h2 class="section-title">Features designed for<br>a seamless experience.</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <i class="fa-solid fa-coins feature-icon"></i>
+                <h3 class="feature-title">Custom Balances</h3>
+                <p class="feature-desc">Set any balance you want for any token. Show off millions or keep it subtle — it's your call.</p>
+            </div>
+            <div class="feature-card">
+                <i class="fa-solid fa-wand-magic-sparkles feature-icon"></i>
+                <h3 class="feature-title">Pixel-Perfect UI</h3>
+                <p class="feature-desc">Designed to look identical to other popular wallets. Every detail is crafted to perfection.</p>
+            </div>
+            <div class="feature-card">
+                <i class="fa-solid fa-lock feature-icon"></i>
+                <h3 class="feature-title">No Data Collected</h3>
+                <p class="feature-desc">We don't ask for seed phrases, private keys, or any personal information. Totally safe.</p>
+            </div>
+            <div class="feature-card">
+                <i class="fa-solid fa-receipt feature-icon"></i>
+                <h3 class="feature-title">Fake Transactions</h3>
+                <p class="feature-desc">Simulate sends and swaps that look completely real — perfect for screenshots and flexing.</p>
+            </div>
+            <div class="feature-card">
+                <i class="fa-solid fa-bell feature-icon"></i>
+                <h3 class="feature-title">Smart Notifications</h3>
+                <p class="feature-desc">Choose your tokens, set your frequency, and receive custom notifications exactly when it matters to you.</p>
+            </div>
+            <div class="feature-card">
+                <i class="fa-solid fa-rocket feature-icon"></i>
+                <h3 class="feature-title">Instant Updates</h3>
+                <p class="feature-desc">Lifetime access includes all future updates. New tokens, features, and improvements — always included.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="how-it-works-section">
+        <div class="section-badge">HOW IT WORKS</div>
+        <h2 class="section-title">Up and running in minutes.</h2>
+        <div class="steps-container">
+            <div class="step-item">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h3 class="step-title">Purchase a License</h3>
+                    <p class="step-desc">Coinlarp Wallet starting at $10. Choose the plan that works for you, no hidden fees.</p>
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h3 class="step-title">Receive Your Key</h3>
+                    <p class="step-desc">After payment, you'll receive a unique license key via Telegram or email. Keep it safe.</p>
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h3 class="step-title">Activate</h3>
+                    <p class="step-desc">Download the app, enter your license key, and start customizing your dream portfolio. Time to larp.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="pricing" class="pricing-section">
+        <div class="section-badge">PRICING</div>
+        <h2 class="section-title">Affordable plans for you</h2>
+        <div class="pricing-grid">
+            <!-- Starter -->
+            <div class="pricing-card">
+                <div class="pricing-cherry"><i class="fa-solid fa-rocket"></i></div>
+                <h3 class="pricing-name">Starter</h3>
+                <p class="pricing-duration">7 days</p>
+                <div class="pricing-price">€20<span>/one-time</span></div>
+                <div class="pricing-features">
+                    <div class="pricing-feature">
+                        <i class="fa-solid fa-check"></i>
+                        Full app access on iOS & Android
+                    </div>
+                    <div class="pricing-feature">
+                        <i class="fa-solid fa-check"></i>
+                        All updates included
+                    </div>
+                    <div class="pricing-feature">
+                        <i class="fa-solid fa-check"></i>
+                        Unlimited custom balances & tokens
+                    </div>
+                    <div class="pricing-feature inactive">
+                        <i class="fa-solid fa-xmark"></i>
+                        Priority Telegram support
+                    </div>
+                    <div class="pricing-feature inactive">
+                        <i class="fa-solid fa-xmark"></i>
+                        Early access to new features
+                    </div>
+                </div>
+                <a href="https://coinlarp.mysellauth.com/checkout-link?cart[0][productId]=495573&cart[0][variantId]=733644&cart[0][quantity]=1" class="pricing-btn pricing-btn-secondary">GET STARTED</a>
+            </div>
+
+            <!-- Pro -->
+            <div class="pricing-card popular">
+                <div class="popular-badge">MOST POPULAR</div>
+                <div class="pricing-cherry"><i class="fa-solid fa-crown"></i></div>
+                <h3 class="pricing-name">Pro</h3>
+                <p class="pricing-duration">1 month</p>
+                <div class="pricing-price">€50<span>/one-time</span></div>
+                <div class="pricing-features">
+                    <div class="pricing-feature">
+                        <i class="fa-solid fa-check"></i>
+                        Full app access on iOS & Android
+                    </div>
+                    <div class="pricing-feature">
+                        <i class="fa-solid fa-check"></i>
+                        All updates included
+                    </div>
+                    <div class="pricing-feature">
+                        <i class="fa-solid fa-check"></i>
+                        Unlimited custom balances & tokens
+                    </div>
+                    <div class="pricing-feature">
+                        <i class="fa-solid fa-check"></i>
+                        Priority Telegram support
+                    </div>
+                    <div class="pricing-feature inactive">
+                        <i class="fa-solid fa-xmark"></i>
+                        Early access to new features
+                    </div>
+                </div>
+                <a href="https://coinlarp.mysellauth.com/checkout-link?cart[0][productId]=495679&cart[0][variantId]=733805&cart[0][quantity]=1" class="pricing-btn pricing-btn-primary">GET STARTED</a>
+            </div>
+
+            <!-- Advanced -->
+            <div class="pricing-card">
+                <div class="pricing-cherry"><i class="fa-solid fa-infinity"></i></div>
+                <h3 class="pricing-name">Advanced</h3>
+                <p class="pricing-duration">Lifetime</p>
+                <div class="pricing-price">€100<span>/one-time</span></div>
+                <div class="pricing-features">
+                    <div class="pricing-feature">
+                        <i class="fa-solid fa-check"></i>
+                        Full app access on iOS & Android
+                    </div>
+                    <div class="pricing-feature">
+                        <i class="fa-solid fa-check"></i>
+                        All updates included
+                    </div>
+                    <div class="pricing-feature">
+                        <i class="fa-solid fa-check"></i>
+                        Unlimited custom balances & tokens
+                    </div>
+                    <div class="pricing-feature">
+                        <i class="fa-solid fa-check"></i>
+                        Priority Telegram support
+                    </div>
+                    <div class="pricing-feature">
+                        <i class="fa-solid fa-check"></i>
+                        Early access to new features
+                    </div>
+                </div>
+                <a href="https://coinlarp.mysellauth.com/checkout-link?cart[0][productId]=495686&cart[0][variantId]=733817&cart[0][quantity]=1" class="pricing-btn pricing-btn-secondary">GET STARTED</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section id="faq" class="faq-section">
+        <div class="section-badge">FAQ</div>
+        <h2 class="section-title">Frequently Asked Questions</h2>
+        <div class="faq-list">
+            <div class="faq-item">
+                <div class="faq-question">
+                    <span>What is Coinlarp?</span>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-answer-inner">
+                    Coinlarp is a 1-1 crypto wallet that lets you simulate crypto and stock portfolios with custom balances and tokens. Flex your hypothetical gains without risking real money.
+                    </div>
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">
+                    <span>Is Coinlarp free to use?</span>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-answer-inner">
+                    No, Coinlarp requires a license to use. You can try our 7-day Starter plan or choose our Pro or Lifetime plans for full access.
+                    </div>
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">
+                    <span>Can I use real money with Coinlarp?</span>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-answer-inner">
+                    No, Coinlarp is a simulation tool only. You track hypothetical portfolios with custom balances - no real money is involved. Perfect for testing strategies!
+                    </div>
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">
+                    <span>How do I get updates?</span>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-answer-inner">
+                    All plans include free lifetime updates. You'll get new features and improvements automatically through the app.
+                    </div>
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">
+                    <span>Which devices are supported?</span>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-answer-inner">
+                    Coinlarp is available on both iOS and Android.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Telegram CTA -->
+        <div id="telegram" class="telegram-cta">
+            <h3>Stay in the loop!</h3>
+            <p>Join our Telegram group to get the latest news and connect with fellow enthusiasts!</p>
+            <a href="https://t.me/coinlarp" target="_blank" class="telegram-btn"><i class="fa-brands fa-telegram"></i> Join Telegram</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <a href="#" class="footer-logo">
+                    <img src="/logo.png" alt="Coinlarp" class="footer-logo-img">
+                    <span class="footer-logo-text">Coin<span style="color:#ffffff">larp</span></span>
+                </a>
+                <p class="footer-tagline">The most similar phantom wallet worldwide.</p>
+                <a href="mailto:contact@coinlarp.com" class="footer-email">contact@coinlarp.com</a>
+                <div class="footer-socials">
+                    <a href="https://t.me/coinlarp" target="_blank"><i class="fa-brands fa-telegram"></i></a>
+                    <a href="https://discord.gg/gRzmj8DhfK" target="_blank"><i class="fa-brands fa-discord"></i></a>
+                </div>
+            </div>
+            <div class="footer-column">
+                <h4>Dashboard</h4>
+                <a href="dashboard.html">Activate License</a>
+            </div>
+            <div class="footer-column">
+                <h4>Support</h4>
+                <a href="contact.html">Contact Us</a>
+                <a href="#faq">FAQ</a>
+            </div>
+            <div class="footer-column">
+                <h4>Legal</h4>
+                <a href="tos.html">Terms of Service</a>
+                <a href="privacypolicy.html">Privacy Policy</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            © 2026 Coinlarp. All rights reserved.
+        </div>
+    </footer>
+
+    <script>
+        const btn = document.querySelector('.mobile-menu-btn');
+        const closeBtn = document.getElementById('mobileNavClose');
+        const nav = document.getElementById('mobileNav');
+        btn.addEventListener('click', () => nav.classList.toggle('open'));
+        closeBtn.addEventListener('click', () => nav.classList.remove('open'));
+
+        // Close mobile menu when clicking a link
+        const mobileNavLinks = document.querySelectorAll('.mobile-nav a');
+        mobileNavLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                // Close menu after a small delay to allow href to work
+                setTimeout(() => {
+                    nav.classList.remove('open');
+                }, 50);
+            });
+        });
+
+        // FAQ Accordion
+        const faqItems = document.querySelectorAll('.faq-item');
+        faqItems.forEach(item => {
+            const question = item.querySelector('.faq-question');
+            question.addEventListener('click', () => {
+                // Close other items
+                faqItems.forEach(other => {
+                    if (other !== item) other.classList.remove('open');
+                });
+                // Toggle current
+                item.classList.toggle('open');
+            });
+        });
+    </script>
+</body>
+</html>
+
+
+
+

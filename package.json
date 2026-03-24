@@ -1,0 +1,15 @@
+{
+  "name": "coinlarp-licensing",
+  "version": "1.0.0",
+  "description": "License backend for Coinlarp dashboard (Vercel serverless)",
+  "type": "module",
+  "scripts": {
+    "dev": "vercel dev",
+    "test": "node -e \"console.log('no tests')\""
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^0.10.0",
+    "cookie": "^0.6.0",
+    "jsonwebtoken": "^9.0.3"
+  }
+}
